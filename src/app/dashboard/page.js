@@ -14,6 +14,7 @@ import BillingLogsSection from "../components/Dashboard-Screens/BillingLogsSecti
 import DisplaySettings from "../components/Dashboard-Screens/DisplaySettings";
 import SubBusinessesScreen from "../components/Dashboard-Screens/SubBusinessesScreen";
 import useAutoLogout from "../hooks/Autologout";
+import OrganizationRegistration from "../components/Dashboard-Screens/Dynamic Content Screen/DynamicContent";
 
 // Loading component for Suspense fallback
 function DashboardLoader() {
@@ -231,7 +232,7 @@ function DashboardContent() {
   // Sidebar items for header title lookup
   const sidebarItems = [
     { id: "home", label: "Home" },
-    { id: "profile", label: "Business Profile" },
+    { id: "profile", label: "Profile Setup" },
     { id: "sub-businesses", label: "Sub Businesses" },
     { id: "balance", label: "Balance" },
     { id: "subscriptions", label: "Subscriptions" },
@@ -240,6 +241,7 @@ function DashboardContent() {
     { id: "scanshistory", label: "Scan History" },
     { id: "billing", label: "Billing Logs" },
     { id: "displaysettings", label: "Display Settings" },
+    { id: "content-setup", label: "Content Setup" },
     { id: "developers", label: "Developers", icon: "⚡" },
   ];
 
@@ -686,6 +688,9 @@ function DashboardContent() {
   return <SubBusinessesScreen />;
       case "developers":
         return <DevelopersScreen />;
+
+      case "content-setup":
+        return <OrganizationRegistration />;
 
       default:
         return null;

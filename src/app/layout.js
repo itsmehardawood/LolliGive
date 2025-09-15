@@ -13,16 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "CardNest LLC - Scan, Detect, Analyze, Prevent",
-
-   icons: {
-    // icon: '/favicon.ico', // path from the public folder
+  title: "LolliGive ",
+  description: "LolliGive helps NGOs register, create dynamic donation pages, and connect with supporters through videos, logos, mission details, and a secure donate functionality.",
+  icons: {
+    icon: "/favicon.ico", // replace with your favicon in public/
   },
 };
 
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <head >
         <link rel="icon" href="/images/favicon.jpg" type="image/jpg" />
         {/* Or use: <link rel="icon" href="/favicon.ico" /> */}

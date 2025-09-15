@@ -16,7 +16,11 @@ import {
   Receipt,
   Settings,
   Building2,
+  Globe,
+  SeparatorVerticalIcon,
+  HistoryIcon,
 } from 'lucide-react';
+import { FaMoneyBill } from 'react-icons/fa';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, status }) => {
   const [email, setEmail] = useState('');
@@ -40,21 +44,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, status 
 
   const baseSidebarItems = [
     { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" /> },
-    { id: 'profile', label: 'Business Profile', icon: <User className="w-5 h-5" /> },
-    { id: 'subscriptions', label: 'Subscriptions', icon: <ClipboardList className="w-5 h-5" /> },
-    { id: 'Card', label: 'Security Scan Settings', icon: <BadgeDollarSign className="w-5 h-5" /> },
-    { id: 'scanshistory', label: 'Scan History', icon: <History className="w-5 h-5" /> },
-    { id: 'billing', label: 'Billing Logs', icon: <Receipt className="w-5 h-5" /> },
-    { id: 'documents', label: 'Documents', icon: <FileText className="w-5 h-5" /> },
-    { id: 'displaysettings', label: 'Display Settings', icon: <Settings className="w-5 h-5" /> },
-    { id: 'developers', label: 'Developers', icon: <Zap className="w-5 h-5" /> },
+    { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
+    { id: 'withdraw-funds', label: 'Withdraw Funds', icon: <FileText className="w-5 h-5" /> },
+    { id: 'transactions', label: 'Transactions', icon: <HistoryIcon className="w-5 h-5" /> },
+   { id: 'content-setup', label: 'Content Setup', icon: <SeparatorVerticalIcon className="w-5 h-5" /> },
+    { id: 'my-page', label: 'My Page', icon: <Globe className="w-5 h-5" /> },
+   { id: 'reports', label: 'Reports', icon: <ClipboardList className="w-5 h-5" /> },
+    
+
+    
   ];
 
   // Add Sub Businesses tab for enterprise users
   const sidebarItems = userRole === 'ENTERPRISE_USER' 
     ? [
         ...baseSidebarItems.slice(0, 2), // Home and Business Profile
-        { id: 'sub-businesses', label: 'Sub Businesses', icon: <Building2 className="w-5 h-5" /> },
         ...baseSidebarItems.slice(2) // Rest of the items
       ]
     : baseSidebarItems;
