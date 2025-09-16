@@ -14,12 +14,11 @@ const scrollToSection = (e, targetId) => {
   }
 };
 
-
-export default function Navbar() {
+export default function NavbarHomePage() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="w-full bg-white shadow-sm">
+    <nav className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-10">
         {/* Logo */}
         <Link href="/" className="text-xl sm:text-2xl font-bold text-red-800">
@@ -27,20 +26,18 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden lg:flex space-x-6 xl:space-x-8">
+        <div className="hidden lg:flex space-x-6 xl:space-x-8 items-center">
           <Link
             href="/organization"
             className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
-         onClick={(e) => scrollToSection(e, "features")}
-
+            onClick={(e) => scrollToSection(e, "features")}
           >
             ORGANIZATION
           </Link>
           <Link
             href="/about"
             className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
-                        onClick={(e) => scrollToSection(e, "about-us")}
-
+            onClick={(e) => scrollToSection(e, "about-us")}
           >
             ABOUT US
           </Link>
@@ -53,10 +50,16 @@ export default function Navbar() {
           <Link
             href="/contact"
             className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
-             onClick={(e) => scrollToSection(e, "testimonials")}
-
+            onClick={(e) => scrollToSection(e, "testimonials")}
           >
             CONTACT US
+          </Link>
+
+          <Link
+            href="#"
+            className="bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+          >
+            Get started
           </Link>
         </div>
 
@@ -76,15 +79,20 @@ export default function Navbar() {
           <Link
             href="/organization"
             className="block text-red-800 font-medium hover:text-red-600 transition py-2"
-            onClick={(e) => { setIsOpen(false); scrollToSection(e, "features"); }}
-
+            onClick={(e) => {
+              setIsOpen(false);
+              scrollToSection(e, "features");
+            }}
           >
             ORGANIZATION
           </Link>
           <Link
             href="/about"
             className="block text-red-800 font-medium hover:text-red-600 transition py-2"
-            onClick={(e) => { setIsOpen(false); scrollToSection(e, "about-us"); }}
+            onClick={(e) => {
+              setIsOpen(false);
+              scrollToSection(e, "about-us");
+            }}
           >
             ABOUT US
           </Link>
@@ -98,9 +106,19 @@ export default function Navbar() {
           <Link
             href="/contact"
             className="block text-red-800 font-medium hover:text-red-600 transition py-2"
-            onClick={(e) => { setIsOpen(false); scrollToSection(e, "testimonials"); }}
+            onClick={(e) => {
+              setIsOpen(false);
+              scrollToSection(e, "testimonials");
+            }}
           >
             CONTACT US
+          </Link>
+
+          <Link
+            href="#"
+            className="bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium mx-3 mt-2 block text-center"
+          >
+            Get started
           </Link>
         </div>
       )}

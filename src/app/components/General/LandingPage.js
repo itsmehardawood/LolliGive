@@ -1,5 +1,4 @@
 import React from 'react';
-import Navbar from '../Homepage/Navbar';
 import Hero from '../Homepage/Hero';
 import RedSection from '../Homepage/RedSection';
 import Card from '../Homepage/Card';
@@ -7,6 +6,7 @@ import ContactSection from '../Homepage/ContactUs';
 import AboutUs from '../Homepage/AboutUs';
 import FAQSection from '../Homepage/FAQsSection';
 import Footer from '../Homepage/Footer';
+import NavbarHomePage from '../Homepage/Navbar';
 
 export default function LolliGiveLanding() {
 const cards = [
@@ -36,7 +36,7 @@ const cards = [
       <div className="relative z-10 bg-white ">
         {/* Navigation */}
         <nav className="bg-white sticky top-0 z-50 shadow-sm">
-          <Navbar/>
+          <NavbarHomePage/>
         </nav>
 
         {/* Hero Section */}
