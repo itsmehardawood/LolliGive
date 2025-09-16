@@ -3,40 +3,58 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 
+const scrollToSection = (e, targetId) => {
+  e.preventDefault();
+  const target = document.getElementById(targetId);
+  if (target) {
+    window.scrollTo({
+      top: target.offsetTop - 100, // adjust for any fixed header offset
+      behavior: "smooth",
+    });
+  }
+};
+
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="w-full bg-white ">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-10">
+    <nav className="w-full bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-10">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-red-800">
-          LOGO
+        <Link href="/" className="text-xl sm:text-2xl font-bold text-red-800">
+          LOLLIGIVE
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex space-x-8">
+        <div className="hidden lg:flex space-x-6 xl:space-x-8">
           <Link
             href="/organization"
-            className="text-red-800 font-medium hover:text-red-600 transition"
+            className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
+         onClick={(e) => scrollToSection(e, "features")}
+
           >
             ORGANIZATION
           </Link>
           <Link
             href="/about"
-            className="text-red-800 font-medium hover:text-red-600 transition"
+            className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
+                        onClick={(e) => scrollToSection(e, "about-us")}
+
           >
             ABOUT US
           </Link>
           <Link
-            href="/security"
-            className="text-red-800 font-medium hover:text-red-600 transition"
+            href="/"
+            className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
           >
             SECURITY
           </Link>
           <Link
             href="/contact"
-            className="text-red-800 font-medium hover:text-red-600 transition"
+            className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
+             onClick={(e) => scrollToSection(e, "testimonials")}
+
           >
             CONTACT US
           </Link>
@@ -44,41 +62,43 @@ export default function Navbar() {
 
         {/* Mobile Button */}
         <button
-          className="md:hidden text-red-800"
+          className="lg:hidden text-red-800 p-1"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
         >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {/* Mobile Nav */}
       {isOpen && (
-        <div className="md:hidden bg-white px-6 pb-6 space-y-4">
+        <div className="lg:hidden bg-white border-t border-gray-100 px-4 sm:px-6 pb-4 space-y-3">
           <Link
             href="/organization"
-            className="block text-red-800 font-medium hover:text-red-600 transition"
-            onClick={() => setIsOpen(false)}
+            className="block text-red-800 font-medium hover:text-red-600 transition py-2"
+            onClick={(e) => { setIsOpen(false); scrollToSection(e, "features"); }}
+
           >
             ORGANIZATION
           </Link>
           <Link
             href="/about"
-            className="block text-red-800 font-medium hover:text-red-600 transition"
-            onClick={() => setIsOpen(false)}
+            className="block text-red-800 font-medium hover:text-red-600 transition py-2"
+            onClick={(e) => { setIsOpen(false); scrollToSection(e, "about-us"); }}
           >
             ABOUT US
           </Link>
           <Link
-            href="/security"
-            className="block text-red-800 font-medium hover:text-red-600 transition"
+            href="/"
+            className="block text-red-800 font-medium hover:text-red-600 transition py-2"
             onClick={() => setIsOpen(false)}
           >
             SECURITY
           </Link>
           <Link
             href="/contact"
-            className="block text-red-800 font-medium hover:text-red-600 transition"
-            onClick={() => setIsOpen(false)}
+            className="block text-red-800 font-medium hover:text-red-600 transition py-2"
+            onClick={(e) => { setIsOpen(false); scrollToSection(e, "testimonials"); }}
           >
             CONTACT US
           </Link>

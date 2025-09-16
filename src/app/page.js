@@ -1,11 +1,11 @@
 'use client'
 import React from 'react'
-import LandingPage from './components/General/LandingPage'
+import LolliGiveLanding from './components/General/LandingPage'
 
 function page() {
   return (
     <div>
-      <LandingPage/>
+      <LolliGiveLanding/>
     </div>
   )
 }

@@ -4,9 +4,9 @@ import Image from "next/image";
 
 export default function Card({ image, title, description }) {
   return (
-    <div className="bg-white shadow-md max-w-sm">
-      {/* Image with only top-right rounded */}
-      <div className="relative w-full h-48">
+    <div className="bg-white shadow-md w-full max-w-sm mx-auto  transition-shadow duration-300 hover:shadow-xl">
+      {/* Image with responsive height */}
+      <div className="relative w-full h-40 sm:h-48 lg:h-52">
         <Image
           src={image}
           alt={title}
@@ -15,11 +15,14 @@ export default function Card({ image, title, description }) {
         />
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <h3 className="text-xl font-semibold text-red-800 mb-2">{title}</h3>
-        <p className="text-gray-600 text-sm">{description}</p>
+      {/* Content with responsive padding */}
+      <div className="p-3 sm:p-4 lg:p-5">
+        <h3 className="text-lg sm:text-xl font-semibold text-red-800 mb-2">{title}</h3>
+        <p className="text-gray-600 text-xs sm:text-sm lg:text-base leading-relaxed">{description}</p>
       </div>
     </div>
   );
 }
+
+
+
