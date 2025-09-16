@@ -16,7 +16,7 @@ export default function Hero() {
       </div>
 
       {/* White Box Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center md:justify-center sm:justify-start px-4 sm:px-8">
+      <div className="absolute inset-0 flex items-center justify-start  sm:justify-center px-4 sm:px-8">
         <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-11 text-center shadow-lg max-w-xs sm:max-w-sm lg:max-w-lg w-full sm:w-auto">
           <p className="text-gray-600 mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl text-center leading-relaxed">
             Join the worlds most trusted and secured platform GIVING to change
