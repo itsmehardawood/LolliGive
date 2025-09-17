@@ -15,6 +15,7 @@ import DisplaySettings from "../components/Dashboard-Screens/DisplaySettings";
 import SubBusinessesScreen from "../components/Dashboard-Screens/SubBusinessesScreen";
 import useAutoLogout from "../hooks/Autologout";
 import OrganizationRegistration from "../components/Dashboard-Screens/Dynamic Content Screen/DynamicContent";
+import SharePageCard from "../components/Dashboard-Screens/Dynamic Content Screen/MyPage";
 
 // Loading component for Suspense fallback
 function DashboardLoader() {
@@ -242,6 +243,8 @@ function DashboardContent() {
     { id: "billing", label: "Billing Logs" },
     { id: "displaysettings", label: "Display Settings" },
     { id: "content-setup", label: "Content Setup" },
+    { id: "mypage", label: "My Page" },
+
     { id: "developers", label: "Developers", icon: "⚡" },
   ];
 
@@ -691,6 +694,9 @@ function DashboardContent() {
 
       case "content-setup":
         return <OrganizationRegistration />;
+
+      case "mypage":
+        return <SharePageCard />;
 
       default:
         return null;

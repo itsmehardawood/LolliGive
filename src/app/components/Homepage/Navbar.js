@@ -21,7 +21,7 @@ export default function NavbarHomePage() {
     <nav className="w-full bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-10">
         {/* Logo */}
-        <Link href="/" className="text-xl sm:text-2xl font-bold text-red-800">
+        <Link href="/" className="text-xl sm:text-2xl font-serif font-bold text-red-800">
           LOLLIGIVE
         </Link>
 
@@ -44,6 +44,8 @@ export default function NavbarHomePage() {
           <Link
             href="/"
             className="text-red-800 font-medium hover:text-red-600 transition text-sm xl:text-base"
+             onClick={(e) => scrollToSection(e, "security")}
+
           >
             SECURITY
           </Link>
@@ -56,7 +58,7 @@ export default function NavbarHomePage() {
           </Link>
 
           <Link
-            href="#"
+            href="/signup"
             className="bg-red-800 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
           >
             Get started

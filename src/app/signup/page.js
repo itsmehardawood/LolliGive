@@ -406,15 +406,9 @@ useEffect(() => {
             <div className="flex items-center">
               <Link
                 href="/"
-                className="text-2xl pl-8 font-bold text-gray-900 hover:text-blue-600 transition-colors"
+                className="text-xl pl-8 font-bold font-serif text-black hover:text-red-600 transition-colors"
               >
-                <video autoPlay loop muted playsInline width="70">
-                  <source
-                    src="https://dw1u598x1c0uz.cloudfront.net/CardNest%20Logo%20WebM%20version.webm"
-                    alt="CardNest Logo"
-                  />
-                  Your browser does not support the video tag.
-                </video>
+                LOLLIGIVE
               </Link>
             </div>
           </div>
@@ -427,39 +421,31 @@ useEffect(() => {
           {/* Left Section: Descriptive text */}
           <div className="hidden md:block md:w-1/2 p-8 md:p-16 flex-col">
             <div className="text-black space-y-5 md:space-y-12">
-              <div>
+              <div className="mb-5">
                 <h3 className="text-sm font-semibold mb-2 drop-shadow-lg">
-                  Get Secured Fast
+                 Church & Ministries
+
                 </h3>
                 <p className="leading-relaxed text-[10px] md:text-[13px] w-[80%] drop-shadow-md">
-                  Quickly deploy fraud protection solution with
-                  developer-friendly APIs for rapid implementation—no complex
-                  setup required and fewer API integration calls.
+                 Churches and ministries play a vital role in building stronger communities by providing spiritual guidance, organizing outreach programs, and supporting individuals in times of need.
                 </p>
               </div>
 
-              <div>
+              <div className="mb-5">
                 <h3 className="text-sm font-semibold mb-2 drop-shadow-lg">
-                  Protect Any Business Model
+                  Non-Profit Organizations
                 </h3>
                 <p className="leading-relaxed text-[10px] md:text-[13px] w-[80%] drop-shadow-md">
-                  Whether you are running eCommerce, subscriptions, remittance
-                  services, SaaS platforms, or digital marketplaces, Bank
-                  CardNest provides a unified fraud prevention engine built to
-                  adapt to your business.
+                Non-profit organizations are dedicated to creating meaningful change by addressing pressing issues such as poverty, education, healthcare, environmental protection, and human rights.
                 </p>
               </div>
 
-              <div>
+              <div className="mb-0">
                 <h3 className="text-sm font-semibold mb-2 drop-shadow-lg">
-                  Trusted by Growing Businesses Worldwide
+                 Government Donation | Support
                 </h3>
                 <p className="leading-relaxed text-[10px] md:text-[13px] w-[80%] drop-shadow-md">
-                  From fast-scaling startups to established enterprises,
-                  CardNest is trusted by businesses around the globe to protect
-                  online payments, prevent chargebacks, and safeguard customer
-                  trust.
-                </p>
+           Government-supported initiatives often focus on large-scale projects such as disaster relief, education, healthcare, and social welfare programs. </p>
               </div>
             </div>
           </div>
@@ -707,7 +693,7 @@ useEffect(() => {
       <footer className="fixed bottom-4 left-0 right-0 z-30">
         <div className="text-center">
           <p className="text-xs text-white/80 drop-shadow-lg">
-            © 2025 CardNest. All rights reserved.
+            © 2025 LolliGive. All rights reserved.
           </p>
         </div>
       </footer>

@@ -365,12 +365,9 @@ if (userRole === "BUSINESS_USER" || userRole === "ENTERPRISE_USER") {
             <div className="flex-shrink-0">
               <Link
                 href="/"
-                className="text-xl sm:text-2xl my-2 font-bold text-white drop-shadow-lg"
+                className="text-xl sm:text-2xl my-2 font-bold font-serif transition-colors text-white hover:text-red-800 drop-shadow-lg"
               >
-                <video autoPlay loop muted playsInline width="70">
-                  <source src="https://dw1u598x1c0uz.cloudfront.net/CardNest%20Logo%20WebM%20version.webm" alt="CardNest Logo" />
-                  Your browser does not support the video tag.
-                </video>
+               LolliGive
               </Link>
             </div>
           </div>
@@ -608,9 +605,9 @@ if (userRole === "BUSINESS_USER" || userRole === "ENTERPRISE_USER") {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-2 sm:space-y-3">
             <div className="flex items-center justify-center space-x-4 text-sm text-black/90 drop-shadow-lg">
-              <span>© CardNest</span>
+              <span>© LolliGive</span>
               <span>•</span>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-blue-900 transition-colors">
                 Privacy & terms
               </a>
             </div>

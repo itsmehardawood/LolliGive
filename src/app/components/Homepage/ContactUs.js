@@ -6,8 +6,8 @@ import Image from "next/image";
 
 export default function ContactSection() {
   return (
-    <section className="min-h-[550px] bg-red-800 flex items-center justify-center px-4 py-8 rounded-bl-4xl">
-      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
+    <section className="min-h-[550px] bg-red-800 flex items-center justify-center px-4 py-8 rounded-sm lg:rounded-tl-[100px]">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-center">
         
         {/* Left: Contact Image - Hidden on small screens, visible on large */}
         <div className="relative w-full max-w-[300px] h-[250px] sm:h-[300px] mx-auto rounded-xl overflow-hidden shadow-lg  lg:block">
@@ -54,7 +54,7 @@ export default function ContactSection() {
         </div>
 
         {/* Right: Contact Info */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 text-gray-700 w-full">
+        <div className="bg-white rounded-xl shadow-lg p-3 sm:p-6 lg:p-6 text-gray-700 w-full">
           <h3 className="text-lg sm:text-xl font-bold text-red-900 mb-3 sm:mb-4">Get in Touch</h3>
           <div className="space-y-2 text-sm sm:text-base">
             <p className="flex items-start gap-2">
@@ -67,7 +67,7 @@ export default function ContactSection() {
             </p>
             <p className="flex items-center gap-2">
               <span className="text-lg">✉️</span>
-              <span className="break-all">info@lolligive.com</span>
+              <span className="break-all">support@lolligive.com</span>
             </p>
           </div>
 

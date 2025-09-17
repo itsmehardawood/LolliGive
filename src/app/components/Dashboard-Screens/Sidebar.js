@@ -45,11 +45,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, status 
   const baseSidebarItems = [
     { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" /> },
     { id: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
-    { id: 'withdraw-funds', label: 'Withdraw Funds', icon: <FileText className="w-5 h-5" /> },
-    { id: 'transactions', label: 'Transactions', icon: <HistoryIcon className="w-5 h-5" /> },
-   { id: 'content-setup', label: 'Content Setup', icon: <SeparatorVerticalIcon className="w-5 h-5" /> },
-    { id: 'my-page', label: 'My Page', icon: <Globe className="w-5 h-5" /> },
+                 { id: 'content-setup', label: 'Content Setup', icon: <SeparatorVerticalIcon className="w-5 h-5" /> },
+
    { id: 'reports', label: 'Reports', icon: <ClipboardList className="w-5 h-5" /> },
+       { id: 'transactions', label: 'Transactions', icon: <HistoryIcon className="w-5 h-5" /> },
+
+           { id: 'mypage', label: 'My Page', icon: <Globe className="w-5 h-5" /> },
+
+
+
+       { id: 'withdraw-funds', label: 'Withdraw Funds', icon: <FileText className="w-5 h-5" /> },
+
     
 
     
@@ -79,15 +85,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, status 
     >
       {/* Header */}
       <div className="flex items-center justify-between p-3.5 border-b border-gray-700">
-        {sidebarOpen && <h1 className="text-xl font-bold" style={{color: '#e0aa3e'}}>Dashboard</h1>}
+        {sidebarOpen && <h1 className="text-xl font-bold" style={{color: '#ffffff'}}>Dashboard</h1>}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded hover:bg-gray-800 transition-colors"
         >
           {sidebarOpen ? (
-            <ChevronLeft className="w-5 h-5" style={{color: '#e0aa3e'}} />
+            <ChevronLeft className="w-5 h-5" style={{color: '#ffffff'}} />
           ) : (
-            <ChevronRight className="w-5 h-5" style={{color: '#e0aa3e'}} />
+            <ChevronRight className="w-5 h-5" style={{color: '#ffffff'}} />
           )}
         </button>
       </div>
@@ -106,7 +112,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, status 
                   ? 'bg-gray-800 border border-gray-600'
                   : 'hover:bg-gray-800'
               }`}
-              style={{color: activeTab === item.id ? '#e0aa3e' : '#e0aa3e'}}
+              style={{color: activeTab === item.id ? '#ffffff' : '#ffffff'}}
             >
               {item.icon}
               {sidebarOpen && <span className="ml-3 font-medium">{item.label}</span>}
@@ -139,7 +145,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, status 
                 {userRole === 'enterprise_user' ? 'E' : 'U'}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium truncate" style={{color: '#e0aa3e'}}>
+                <p className="text-sm font-medium truncate" style={{color: '#ffffff'}}>
                   {userRole === 'enterprise_user' ? 'Enterprise Account' : 'User Account'}
                 </p>
                 <p className="text-xs text-gray-400 truncate">{email || 'Loading...'}</p>

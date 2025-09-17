@@ -7,6 +7,7 @@ import AboutUs from '../Homepage/AboutUs';
 import FAQSection from '../Homepage/FAQsSection';
 import Footer from '../Homepage/Footer';
 import NavbarHomePage from '../Homepage/Navbar';
+import SecuritySection from '../Homepage/SecuritySection';
 
 export default function LolliGiveLanding() {
 const cards = [
@@ -30,36 +31,46 @@ const cards = [
   },
 ];
 
-  return (
+
+
+const SectionHeader = ({ title }) => (
+  <div className="flex items-start mb-8 sm:mb-12">
+    <div className="h-0.5 w-20 bg-red-900 mr-4"></div>
+    <h2 className="text-md sm:text-lg font-bold text-red-800">
+      {title}
+    </h2>
+  </div>
+);
+
+
+
+   return (
     <div className="relative">
       {/* Main content wrapper */}
-      <div className="relative z-10 bg-white ">
+      <div className="relative z-10 bg-white">
         {/* Navigation */}
         <nav className="bg-white sticky top-0 z-50 shadow-sm">
-          <NavbarHomePage/>
+          <NavbarHomePage />
         </nav>
 
         {/* Hero Section */}
-        <section className="py-8 sm:py-12 lg:py-16 md:pb-20 pt-5 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="lg:max-w-7xl w-full mx-auto">
-            <Hero/>
+        <section className="py-2 sm:py-12 lg:py-0 lg:pb-10 md:pb-20 pt-5 px-4 sm:px-6 lg:px-8 bg-white">
+<div className="w-full mx-auto max-w-7xl lg:max-w-screen-2xl">
+            <Hero />
           </div>
         </section>
 
         {/* How It Works Section */}
         <section id="how-it-works" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
-          <RedSection/>
+          <RedSection />
         </section>
 
         {/* Key Features Section */}
         <section id="features" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             {/* Section Header */}
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-red-800 mb-4">
-                FEATURED ORGANIZATIONS
-              </h2>
-            </div>
+            <SectionHeader title="FEATURED ORGANIZATIONS" />
+
 
             {/* Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -75,32 +86,38 @@ const cards = [
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section id="testimonials" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
-          <ContactSection/>
-        </section>
 
-        {/* About Us Section */}
-        <section id="about-us"  className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
-          <div className="max-w-8xl mx-auto">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-red-800 mb-4">
-                ABOUT US
-              </h2>
-            </div>
-            <AboutUs/>
+
+          {/* About Us Section */}
+        <section id="about-us" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeader title="ABOUT US" />
+            <AboutUs />
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
+          {/* Security Info Section */}
+        <section id="security" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-red-800 mb-4">
-                Frequently Asked Questions
-              </h2>
-            </div>
-            <FAQSection/>
+            <SecuritySection />
+          </div>
+        </section>
+
+        {/* Contact Section */}
+        <section id="testimonials" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+           <SectionHeader title="REACH OUT TO US" />
+            <ContactSection />
+          </div>
+        </section>
+
+      
+
+        {/* FAQ Section */}
+        <section className="py-8 sm:py-12 lg:py-16 bg-gray-100 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeader title="Frequently Asked Questions" />
+            <FAQSection />
           </div>
         </section>
       </div>
