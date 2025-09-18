@@ -2,11 +2,10 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Download } from "lucide-react";
+import { Copy, Check, Download, Share2 } from "lucide-react";
 import QRCode from "react-qr-code";
 
 export default function SharePageCard({ url }) {
-  // Default fallback if no URL passed
   const shareUrl = url || "https://www.lolligive.com/demo";
   const [copied, setCopied] = useState(false);
 
@@ -47,25 +46,36 @@ export default function SharePageCard({ url }) {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-gray-900 shadow-lg rounded-2xl p-6 text-center space-y-6 border border-gray-700 text-gray-100">
-      {/* Instructions */}
+    <div className="max-w-md mx-auto bg-gray-900 shadow-xl rounded-2xl p-8 text-center space-y-6 border border-gray-700 text-gray-100">
+      {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold text-white">Your Shareable Page</h2>
+        <div className="flex items-center justify-center gap-2">
+          <Share2 className="h-6 w-6 text-indigo-400" />
+          <h2 className="text-2xl font-bold text-white">Your Shareable Page</h2>
+        </div>
         <p className="text-sm text-gray-400">
-          This page is your unique link on our platform. You can{" "}
-          <span className="font-medium text-indigo-400">share it with your network</span>{" "}
-          by copying the link or scanning the QR code below.
+          This is your unique link on{" "}
+          <span className="text-indigo-400 font-medium">Lolligive</span>.  
+          Share it with your network by copying the link or scanning the QR code.
         </p>
       </div>
 
       {/* QR Code */}
-      <div className="flex justify-center bg-gray-800 p-4 rounded-xl">
-        <QRCode id="qr-code" value={shareUrl} size={180} bgColor="#111827" fgColor="#F9FAFB" />
+      <div className="flex justify-center">
+        <div className="bg-gray-800 p-4 rounded-xl shadow-inner">
+          <QRCode
+            id="qr-code"
+            value={shareUrl}
+            size={200}
+            bgColor="#111827"
+            fgColor="#F9FAFB"
+          />
+        </div>
       </div>
 
-      {/* URL with copy */}
-      <div className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
-        <span className="text-sm text-gray-300 truncate">{shareUrl}</span>
+      {/* URL & Copy Button */}
+      <div className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 shadow-inner">
+        <span className="text-sm text-gray-300 truncate max-w-[70%]">{shareUrl}</span>
         <button
           onClick={handleCopy}
           className="ml-2 p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition"
@@ -81,7 +91,7 @@ export default function SharePageCard({ url }) {
       {/* Download QR Button */}
       <button
         onClick={handleDownload}
-        className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+        className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-3 rounded-lg shadow-lg hover:bg-indigo-700 transition font-semibold"
       >
         <Download className="h-5 w-5" />
         Download QR Code

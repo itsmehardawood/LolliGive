@@ -16,6 +16,8 @@ import SubBusinessesScreen from "../components/Dashboard-Screens/SubBusinessesSc
 import useAutoLogout from "../hooks/Autologout";
 import OrganizationRegistration from "../components/Dashboard-Screens/Dynamic Content Screen/DynamicContent";
 import SharePageCard from "../components/Dashboard-Screens/Dynamic Content Screen/MyPage";
+import Transactions from "../components/Dashboard-Screens/TransactionScreen/Transactions";
+import BankInfoForm from "../components/Dashboard-Screens/WithdrawMoney/WithdrawMoney";
 
 // Loading component for Suspense fallback
 function DashboardLoader() {
@@ -244,6 +246,10 @@ function DashboardContent() {
     { id: "displaysettings", label: "Display Settings" },
     { id: "content-setup", label: "Content Setup" },
     { id: "mypage", label: "My Page" },
+    { id: "transactions", label: "Transactions" },
+    { id: "withdraw-funds", label: "Withdraw Funds" },
+
+    
 
     { id: "developers", label: "Developers", icon: "⚡" },
   ];
@@ -697,6 +703,13 @@ function DashboardContent() {
 
       case "mypage":
         return <SharePageCard />;
+
+      case "transactions":
+        return <Transactions />;
+
+        case "withdraw-funds":
+        return <BankInfoForm/>
+
 
       default:
         return null;
