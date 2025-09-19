@@ -6,7 +6,7 @@ import { Copy, Check, Download, Share2 } from "lucide-react";
 import QRCode from "react-qr-code";
 
 export default function SharePageCard({ url }) {
-  const shareUrl = url || "https://www.lolligive.com/demo";
+  const shareUrl = url || "https://www.lolligive.com/org/demo";
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {

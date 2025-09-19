@@ -151,7 +151,7 @@ function MainBusinessScreen({
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-12 w-12  border-blue-600 mx-auto mb-4"></div>
           <p className="text-white">
-            Loading business verification status...
+            Loading Organization verification status...
           </p>
         </div>
       </div>

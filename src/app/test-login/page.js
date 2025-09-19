@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '../lib/api.js';
 
 export default function LoginPage() {
-  const [countryCode, setCountryCode] = useState('+92');
+  const [countryCode, setCountryCode] = useState('+1');
   const [loginInput, setLoginInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -76,13 +76,13 @@ const handleLogin = async () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
+              Email
             </label>
             <input
               type="text"
               value={loginInput}
               onChange={(e) => setLoginInput(e.target.value)}
-              placeholder="e.g., 3001234567"
+              placeholder="e.g., xyz@gmail.com "
               className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900"
             />
           </div>

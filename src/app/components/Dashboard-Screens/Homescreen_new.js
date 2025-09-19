@@ -212,7 +212,7 @@ function HomeScreen({ status, setActiveTab }) {
                 className="flex items-center text-gray-300 hover:text-white text-sm font-medium p-2 hover:bg-gray-800 rounded transition-colors"
               >
                 <FiMail className="mr-2" />
-                support@cardnest.io
+                support@lolligive.com
               </a>
             </div>
           </div>

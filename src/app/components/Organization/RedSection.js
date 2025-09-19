@@ -3,8 +3,8 @@
 export default function RedSection({ welcomeData }) {
   const {
     title = "You are Welcome",
-    description = "We are excited for the visit and exploring more about us. Always remember; you are WHO you think you are based on your thoughts - support people if you can - God sees and rewards every faithful supporter",
-    buttonText = "Get Started",
+    description = "We’re delighted to welcome you and share more about who we are. Always remember: your thoughts shape who you become. Lend support where you can—every act of kindness is seen and rewarded by God." ,
+      buttonText = "Get Started",
     buttonAction
   } = welcomeData || {};
 
@@ -22,12 +22,12 @@ export default function RedSection({ welcomeData }) {
         </p>
 
         {/* Button */}
-        <button 
+        {/* <button 
           className="bg-white text-red-800 font-medium px-8 sm:px-12 lg:px-20 py-2 sm:py-3 hover:bg-red-100 transition text-sm sm:text-base"
           onClick={buttonAction}
         >
           {buttonText}
-        </button>
+        </button> */}
       </div>
     </section>
   );
