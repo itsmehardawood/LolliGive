@@ -54,15 +54,15 @@ const SectionHeader = ({ title }) => (
         </nav>
 
         {/* Hero Section */}
-        <section className="py-2 sm:py-12 lg:py-0 lg:pb-10 md:pb-20 pt-5 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="w-full mx-auto max-w-screen-2xl">
-            <Hero />
-          </div>
+        <section className="bg-white">
+          <Hero />
         </section>
 
         {/* How It Works Section */}
         <section id="how-it-works" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
-          <RedSection />
+          <div className="max-w-[100rem] w-full mx-auto">
+            <RedSection />
+          </div>
         </section>
 
         {/* Key Features Section */}

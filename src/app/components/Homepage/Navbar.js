@@ -20,7 +20,7 @@ export default function NavbarHomePage() {
 
   return (
     <nav className="w-full bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-6">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-5">
     <Link href="/" className="flex items-center">
   <Image
     src="/images/lolligive.png" // replace with your logo path or URL
