@@ -31,7 +31,7 @@ export default function Footer() {
           <div className="sm:col-span-2 lg:col-span-1">
             <h4 className="font-bold text-yellow-400 mb-4 text-lg sm:text-xl">Connect</h4>
             <div className="text-gray-400 py-3 sm:py-5 text-sm sm:text-base space-y-2">
-              <p>Phone: 1-800-552-7972 (US)</p>
+              <p>Phone: 1-646-450-9293 (US)</p>
               <p>Email: <a href="mailto:support@lolligive.com" className="text-red-400 hover:text-red-300 break-all">support@lolligive.com</a></p>
             </div>
             <div className="flex justify-center lg:justify-start gap-3 sm:gap-4 flex-wrap">

@@ -13,6 +13,7 @@ import {
   signInWithPhoneNumber,
 } from "firebase/auth";
 import { apiFetch } from "../lib/api.js";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -363,11 +364,15 @@ if (userRole === "BUSINESS_USER" || userRole === "ENTERPRISE_USER") {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-25">
             <div className="flex-shrink-0">
-              <Link
-                href="/"
-                className="text-xl sm:text-2xl my-2 font-bold font-serif transition-colors text-white hover:text-red-800 drop-shadow-lg"
-              >
-               LolliGive
+               <Link href="/" className="flex items-center">
+                <Image
+                  src="/images/lolligive.png" // replace with your logo path or URL
+                  alt="LolliGive Logo"
+                  width={50}     // adjust size as needed
+                  height={70}
+                  className="h-auto w-auto"
+                  priority
+                />
               </Link>
             </div>
           </div>

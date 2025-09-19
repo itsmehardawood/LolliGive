@@ -109,7 +109,7 @@ export default function PreachingSection({ preachingData }) {
         <div className="bg-red-800 rounded-lg p-8 text-center text-white">
           <h3 className="text-2xl font-bold mb-4">Join Us This Week</h3>
           <p className="text-red-100 mb-6 max-w-2xl mx-auto">
-            Experience the power of worship, fellowship, and God's word. Everyone is welcome in our church family.
+            {   "Experience the power of worship, fellowship, and God's word. Everyone is welcome in our church family."}
           </p>
           <button className="bg-white text-red-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
             Plan Your Visit

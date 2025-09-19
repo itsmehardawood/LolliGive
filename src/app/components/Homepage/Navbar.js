@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Image from "next/image";
 
 const scrollToSection = (e, targetId) => {
   e.preventDefault();
@@ -19,11 +20,17 @@ export default function NavbarHomePage() {
 
   return (
     <nav className="w-full bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-10">
-        {/* Logo */}
-        <Link href="/" className="text-xl sm:text-2xl font-serif font-bold text-red-800">
-          LOLLIGIVE
-        </Link>
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4 sm:py-6 lg:py-6">
+    <Link href="/" className="flex items-center">
+  <Image
+    src="/images/lolligive.png" // replace with your logo path or URL
+    alt="LolliGive Logo"
+    width={50}     // adjust size as needed
+    height={70}
+    className="h-auto w-auto"
+    priority
+  />
+</Link>
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex space-x-6 xl:space-x-8 items-center">

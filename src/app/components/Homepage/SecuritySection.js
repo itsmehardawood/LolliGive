@@ -89,7 +89,7 @@ export default function SecuritySection() {
           key={index}
           className="flex items-start gap-3 leading-relaxed text-base sm:text-lg"
         >
-          <CheckCircle className="w-5 h-5 text-red-800 shrink-0 mt-1" />
+          <CheckCircle className="w-5 h-5 text-red-700 shrink-0 mt-1" />
           <span>{point}</span>
         </li>
       ))}
@@ -97,14 +97,14 @@ export default function SecuritySection() {
   );
 
   return (
-    <section className="py-5 px-4 sm:px-6 lg:px-8 bg-gray-50 text-gray-900">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-5 px-4 sm:px-6 lg:px-8 bg-black text-white">
+      <div className="max-w-[100rem] mx-auto">
         {/* Header */}
         <div className="mb-12 flex flex-col items-center text-center">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-800 mb-4">
             LolliGive Security Measures
           </h2>
-          <p className="text-base sm:text-lg text-gray-600 max-w-3xl">
+          <p className="text-base sm:text-lg text-gray-300 max-w-3xl">
             At LolliGive, protecting your financial information and ensuring the
             integrity of our platform is our top priority. We have implemented
             industry-leading security practices to safeguard every transaction

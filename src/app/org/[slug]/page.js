@@ -2,6 +2,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import OrganizationLanding from '../../components/Organization/OrganizationLanding';
+import Link from 'next/link';
 
 export default function OrganizationPage() {
   const params = useParams();
@@ -259,12 +260,12 @@ export default function OrganizationPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-800 mb-4">Organization Not Found</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <a 
+          <Link 
             href="/" 
             className="bg-red-800 text-white px-6 py-2 rounded hover:bg-red-700 transition"
           >
             Return Home
-          </a>
+          </Link>
         </div>
       </div>
     );

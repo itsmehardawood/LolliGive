@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "LolliGive ",
   description: "LolliGive helps NGOs register, create dynamic donation pages, and connect with supporters through videos, logos, mission details, and a secure donate functionality.",
-  icons: {
-    icon: "/favicon.ico", // replace with your favicon in public/
-  },
+  // icons: {
+  //   icon: "/favicon.ico", // replace with your favicon in public/
+  // },
 };
 
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <head >
-        <link rel="icon" href="/images/favicon.jpg" type="image/jpg" />
+        <link rel="icon" href="/images/lolligive.png" type="image/png" />
         {/* Or use: <link rel="icon" href="/favicon.ico" /> */}
       </head>
       <body 

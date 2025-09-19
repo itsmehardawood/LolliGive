@@ -59,11 +59,11 @@ export default function ContactSection() {
           <div className="space-y-2 text-sm sm:text-base">
             <p className="flex items-start gap-2">
               <span className="text-lg">📍</span>
-              <span>123 Main Street, Ghanna, USA</span>
+              <span >4445 Corporate Lane Virginia Beach, Virginia USA</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-lg">📞</span>
-              <span>+1 234 123 567</span>
+              <span>+1 646-450-9293</span>
             </p>
             <p className="flex items-center gap-2">
               <span className="text-lg">✉️</span>

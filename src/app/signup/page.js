@@ -10,6 +10,7 @@ import { auth } from "../lib/firebase";
 import Select from "react-select";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { apiFetch } from "../lib/api.js";
+import Image from "next/image";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -403,14 +404,16 @@ useEffect(() => {
       <nav className="relative z-20 bg-white">
         <div className="max-w-6xl mx-auto px-3 sm:px-5 lg:px-3">
           <div className="flex justify-between items-center h-22">
-            <div className="flex items-center">
-              <Link
-                href="/"
-                className="text-xl pl-8 font-bold font-serif text-black hover:text-red-600 transition-colors"
-              >
-                LOLLIGIVE
-              </Link>
-            </div>
+           <Link href="/" className="flex items-center">
+  <Image
+    src="/images/lolligive.png" // replace with your logo path or URL
+    alt="LolliGive Logo"
+    width={50}     // adjust size as needed
+    height={70}
+    className="h-auto w-auto"
+    priority
+  />
+</Link>
           </div>
         </div>
       </nav>

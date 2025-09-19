@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function Card({ image, title, description }) {
   return (
-    <div className="bg-white  w-full max-w-sm mx-auto  transition-shadow duration-300 ">
+    <div className="bg-white  max-w-sm mx-auto  transition-shadow duration-300 ">
       {/* Image with responsive height */}
       <div className="relative w-full h-60 sm:h-60 lg:h-80">
         <Image
