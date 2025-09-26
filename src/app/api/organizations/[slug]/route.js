@@ -27,8 +27,8 @@ const mockOrganizations = {
   },
 "hope": {
   "orgId": "78910",
-  "name": "Hope Foundation",
-  "logo": "Hope",
+  "name": "DEMO",
+  "logo": "LOLLIGIVE",
   "mainImage": "https://cdn.pixabay.com/photo/2017/04/25/06/15/father-and-son-2258681_1280.jpg",
   "welcomeText": "Welcome to the Hope Foundation! We are a passionate community of changemakers dedicated to building a future where every individual has equal access to basic necessities, education, and opportunities to thrive.",
   "testimonyText": "At Hope Foundation, we believe that real progress begins with unity, compassion, and a shared vision. By working hand in hand with local communities, volunteers, and supporters worldwide, we are shaping a society where no one is left behind and where kindness paves the way for sustainable growth.",
