@@ -38,18 +38,36 @@ export default function OrganizationRegistration() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [logoPreview, setLogoPreview] = useState(null);
+  const [mainImagePreview, setMainImagePreview] = useState(null);
+  const [aboutUsImagePreview, setAboutUsImagePreview] = useState(null);
   const [formData, setFormData] = useState({
+    // Basic Info
     name: '',
     alias: '',
     logo: null,
-    description: '',
-    video: '',
-    purpose_reason: [''],
-    location: ''
+    mainImage: null,
+    
+    // Content
+    welcomeText: '',
+    testimonyText: '',
+    aboutUsText: '',
+    aboutUsImage: null,
+    donationMessage: '',
+    videoUrl: '',
+    
+    // Contact Info
+    contactInfo: {
+      address: '',
+      phone: '',
+      email: ''
+    },
+    
+    // Purpose
+    purpose_reason: ['']
   });
 
-  const stepTitles = ['Basic Info', 'Media', 'Purpose & Location'];
-  const totalSteps = 3;
+  const stepTitles = ['Basic Info', 'Content & Media', 'About Us', 'Contact & Purpose'];
+  const totalSteps = 4;
 
   const validateStep = (currentStep) => {
     const newErrors = {};
@@ -57,22 +75,37 @@ export default function OrganizationRegistration() {
     switch (currentStep) {
       case 1:
         if (!formData.name.trim()) newErrors.name = 'Organization name is required';
-        if (!formData.description.trim()) newErrors.description = 'Description is required';
-        if (formData.description.length < 50) {
-          newErrors.description = 'Description should be at least 50 characters';
+        if (!formData.welcomeText.trim()) newErrors.welcomeText = 'Welcome text is required';
+        if (formData.welcomeText.length < 30) {
+          newErrors.welcomeText = 'Welcome text should be at least 30 characters';
         }
+        if (!formData.logo) newErrors.logo = 'Logo is required';
+        if (!formData.mainImage) newErrors.mainImage = 'Main image is required';
         break;
       case 2:
-        if (!formData.logo) newErrors.logo = 'Logo is required';
-        if (formData.video && !isValidUrl(formData.video)) {
-          newErrors.video = 'Please enter a valid URL';
+        if (!formData.testimonyText.trim()) newErrors.testimonyText = 'Testimony text is required';
+        if (!formData.donationMessage.trim()) newErrors.donationMessage = 'Donation message is required';
+        if (formData.videoUrl && !isValidUrl(formData.videoUrl)) {
+          newErrors.videoUrl = 'Please enter a valid URL';
         }
         break;
       case 3:
+        if (!formData.aboutUsText.trim()) newErrors.aboutUsText = 'About us text is required';
+        if (formData.aboutUsText.length < 50) {
+          newErrors.aboutUsText = 'About us text should be at least 50 characters';
+        }
+        if (!formData.aboutUsImage) newErrors.aboutUsImage = 'About us image is required';
+        break;
+      case 4: 
+        if (!formData.contactInfo.address.trim()) newErrors.address = 'Address is required';
+        if (!formData.contactInfo.phone.trim()) newErrors.phone = 'Phone number is required';
+        if (!formData.contactInfo.email.trim()) newErrors.email = 'Email is required';
+        if (formData.contactInfo.email && !isValidEmail(formData.contactInfo.email)) {
+          newErrors.email = 'Please enter a valid email address';
+        }
         if (formData.purpose_reason.filter(reason => reason.trim()).length === 0) {
           newErrors.purpose_reason = 'At least one purpose/reason is required';
         }
-        if (!formData.location.trim()) newErrors.location = 'Location is required';
         break;
     }
     
@@ -89,22 +122,45 @@ export default function OrganizationRegistration() {
     }
   };
 
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
     
-    if (name === 'logo' && files && files[0]) {
+    if (files && files[0]) {
       const file = files[0];
-      setFormData(prev => ({ ...prev, logo: file }));
+      setFormData(prev => ({ ...prev, [name]: file }));
       
       // Create preview
       const reader = new FileReader();
-      reader.onload = (e) => setLogoPreview(e.target.result);
+      reader.onload = (e) => {
+        if (name === 'logo') setLogoPreview(e.target.result);
+        if (name === 'mainImage') setMainImagePreview(e.target.result);
+        if (name === 'aboutUsImage') setAboutUsImagePreview(e.target.result);
+      };
       reader.readAsDataURL(file);
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
     
     // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleContactInfoChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      contactInfo: {
+        ...prev.contactInfo,
+        [name]: value
+      }
+    }));
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -157,13 +213,26 @@ export default function OrganizationRegistration() {
       };
 
       const submitData = new FormData();
-      Object.keys(cleanedData).forEach(key => {
-        if (key === 'purpose_reason') {
-          submitData.append(key, JSON.stringify(cleanedData[key]));
-        } else if (cleanedData[key] !== null && cleanedData[key] !== '') {
-          submitData.append(key, cleanedData[key]);
-        }
-      });
+      
+      // Add text fields
+      submitData.append('name', cleanedData.name);
+      if (cleanedData.alias) submitData.append('alias', cleanedData.alias);
+      submitData.append('welcomeText', cleanedData.welcomeText);
+      submitData.append('testimonyText', cleanedData.testimonyText);
+      submitData.append('aboutUsText', cleanedData.aboutUsText);
+      submitData.append('donationMessage', cleanedData.donationMessage);
+      if (cleanedData.videoUrl) submitData.append('videoUrl', cleanedData.videoUrl);
+      
+      // Add contact info
+      submitData.append('contactInfo', JSON.stringify(cleanedData.contactInfo));
+      
+      // Add purpose reasons
+      submitData.append('purpose_reason', JSON.stringify(cleanedData.purpose_reason));
+      
+      // Add files
+      if (cleanedData.logo) submitData.append('logo', cleanedData.logo);
+      if (cleanedData.mainImage) submitData.append('mainImage', cleanedData.mainImage);
+      if (cleanedData.aboutUsImage) submitData.append('aboutUsImage', cleanedData.aboutUsImage);
 
       const response = await fetch('/api/organizations/register', {
         method: 'POST',
@@ -186,7 +255,7 @@ export default function OrganizationRegistration() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br  to-gray-900 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -249,12 +318,12 @@ export default function OrganizationRegistration() {
           </div>
 
           <div className="p-8">
-            {/* Step 1: Basic Information */}
+            {/* Step 1: Basic Information & Images */}
             {step === 1 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-white mb-2">Basic Information</h2>
-                  <p className="text-gray-400">Tell us about your organization</p>
+                  <p className="text-gray-400">Tell us about your organization and upload key images</p>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -280,57 +349,46 @@ export default function OrganizationRegistration() {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-300">
-                    Description <span className="text-red-400">*</span>
+                    Welcome Text <span className="text-red-400">*</span>
                   </label>
                   <textarea
-                    name="description"
-                    value={formData.description}
+                    name="welcomeText"
+                    value={formData.welcomeText}
                     onChange={handleInputChange}
                     required
-                    rows={5}
+                    rows={3}
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Describe your organization's mission, activities, and the communities you serve..."
+                    placeholder="Write a welcoming message for visitors to your organization's page..."
                   />
-                  {errors.description && (
+                  {errors.welcomeText && (
                     <p className="text-red-400 text-sm flex items-center gap-1">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
-                      {errors.description}
+                      {errors.welcomeText}
                     </p>
                   )}
+                  <p className="text-gray-400 text-sm">
+                    {formData.welcomeText.length}/300 characters (minimum 30 required)
+                  </p>
                 </div>
-                <p className="text-gray-400 text-sm -mt-2">
-                  {formData.description.length}/500 characters (minimum 50 required)
-                </p>
-              </div>
-            )}
 
-            {/* Step 2: Logo & Media */}
-            {step === 2 && (
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-2">Logo & Media</h2>
-                  <p className="text-gray-400">Upload your organizations visual identity</p>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-8">
-                  <InputField
-                    label="Organization Logo"
-                    name="logo"
-                    type="file"
-                    required
-                    accept="image/*"
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
-                    formData={formData}
-                    handleInputChange={handleInputChange}
-                    errors={errors}
-                  />
-
-                  {logoPreview && (
-                    <div className="flex justify-center">
-                      <div className="text-center">
-                        <p className="text-gray-300 text-sm mb-2">Preview:</p>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <InputField
+                      label="Organization Logo"
+                      name="logo"
+                      type="file"
+                      required
+                      accept="image/*"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      errors={errors}
+                    />
+                    {logoPreview && (
+                      <div className="mt-3">
+                        <p className="text-gray-300 text-sm mb-2">Logo Preview:</p>
                         <div className="w-32 h-32 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
                           <Image
                             src={logoPreview} 
@@ -341,18 +399,99 @@ export default function OrganizationRegistration() {
                           />
                         </div>
                       </div>
-                    </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <InputField
+                      label="Main/Hero Image"
+                      name="mainImage"
+                      type="file"
+                      required
+                      accept="image/*"
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      errors={errors}
+                    />
+                    {mainImagePreview && (
+                      <div className="mt-3">
+                        <p className="text-gray-300 text-sm mb-2">Main Image Preview:</p>
+                        <div className="w-full h-32 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
+                          <Image
+                            src={mainImagePreview} 
+                            alt="Main image preview" 
+                            className="w-full h-full object-cover"
+                            width={300}
+                            height={128}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Content & Media */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold text-white mb-2">Content & Media</h2>
+                  <p className="text-gray-400">Add testimony, donation message, and video content</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">
+                    Testimony Text <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    name="testimonyText"
+                    value={formData.testimonyText}
+                    onChange={handleInputChange}
+                    required
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Share testimonials or success stories from people you've helped..."
+                  />
+                  {errors.testimonyText && (
+                    <p className="text-red-400 text-sm flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {errors.testimonyText}
+                    </p>
                   )}
                 </div>
-                <p className="text-gray-400 text-sm mt-2">
-                  Recommended: Square image (1:1 ratio), minimum 300×300px, max 5MB
-                </p>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">
+                    Donation Message <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    name="donationMessage"
+                    value={formData.donationMessage}
+                    onChange={handleInputChange}
+                    required
+                    rows={3}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Explain how donations help your cause and encourage people to contribute..."
+                  />
+                  {errors.donationMessage && (
+                    <p className="text-red-400 text-sm flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {errors.donationMessage}
+                    </p>
+                  )}
+                </div>
 
                 <InputField
                   label="Video URL (Optional)"
-                  name="video"
+                  name="videoUrl"
                   type="url"
-                  placeholder="https://youtube.com/watch?v=..."
+                  placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
                   formData={formData}
                   handleInputChange={handleInputChange}
                   errors={errors}
@@ -363,14 +502,118 @@ export default function OrganizationRegistration() {
               </div>
             )}
 
-            {/* Step 3: Purpose & Location */}
+            {/* Step 3: About Us */}
             {step === 3 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-2">Purpose & Location</h2>
-                  <p className="text-gray-400">Define your organizations purpose and location</p>
+                  <h2 className="text-2xl font-bold text-white mb-2">About Us</h2>
+                  <p className="text-gray-400">Tell your organizations story</p>
                 </div>
                 
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">
+                    About Us Text <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    name="aboutUsText"
+                    value={formData.aboutUsText}
+                    onChange={handleInputChange}
+                    required
+                    rows={6}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Describe your organization's history, mission, values, and the impact you make in your community..."
+                  />
+                  {errors.aboutUsText && (
+                    <p className="text-red-400 text-sm flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {errors.aboutUsText}
+                    </p>
+                  )}
+                  <p className="text-gray-400 text-sm">
+                    {formData.aboutUsText.length}/1000 characters (minimum 50 required)
+                  </p>
+                </div>
+
+                <div>
+                  <InputField
+                    label="About Us Image"
+                    name="aboutUsImage"
+                    type="file"
+                    required
+                    accept="image/*"
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                    formData={formData}
+                    handleInputChange={handleInputChange}
+                    errors={errors}
+                  />
+                  {aboutUsImagePreview && (
+                    <div className="mt-3">
+                      <p className="text-gray-300 text-sm mb-2">About Us Image Preview:</p>
+                      <div className="w-full h-48 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
+                        <Image
+                          src={aboutUsImagePreview} 
+                          alt="About us image preview" 
+                          className="w-full h-full object-cover"
+                          width={400}
+                          height={192}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-gray-400 text-sm mt-2">
+                    Upload an image that represents your organizations work or team
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Contact & Purpose */}
+            {step === 4 && (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold text-white mb-2">Contact & Purpose</h2>
+                  <p className="text-gray-400">Provide contact information and define your purpose</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Contact Information</h3>
+                  
+                  <InputField
+                    label="Address"
+                    name="address"
+                    required
+                    placeholder="Full address including city, state/province, country"
+                    formData={formData.contactInfo}
+                    handleInputChange={handleContactInfoChange}
+                    errors={errors}
+                  />
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <InputField
+                      label="Phone Number"
+                      name="phone"
+                      required
+                      placeholder="+1 (555) 123-4567"
+                      formData={formData.contactInfo}
+                      handleInputChange={handleContactInfoChange}
+                      errors={errors}
+                    />
+
+                    <InputField
+                      label="Email Address"
+                      name="email"
+                      type="email"
+                      required
+                      placeholder="contact@organization.org"
+                      formData={formData.contactInfo}
+                      handleInputChange={handleContactInfoChange}
+                      errors={errors}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <label className="block text-sm font-medium text-gray-300">
@@ -422,16 +665,6 @@ export default function OrganizationRegistration() {
                     </p>
                   )}
                 </div>
-
-                <InputField
-                  label="Location"
-                  name="location"
-                  required
-                  placeholder="City, State, Country"
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  errors={errors}
-                />
 
                 {errors.submit && (
                   <div className="bg-red-900/20 border border-red-500 rounded-lg p-4">

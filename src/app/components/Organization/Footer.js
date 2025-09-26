@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube, FaPinterest, FaVimeo } from 'react-icons/fa';
 
 export default function Footer({ footerData }) {
   const {
@@ -11,14 +10,7 @@ export default function Footer({ footerData }) {
         title: "Connect",
         phone: "1-800-552-7972 (US)",
         email: "support@lolligive.com",
-        socialLinks: [
-          { icon: FaFacebook, href: "#" },
-          { icon: FaTwitter, href: "#" },
-          { icon: FaInstagram, href: "#" },
-          { icon: FaYoutube, href: "#" },
-          { icon: FaPinterest, href: "#" },
-          { icon: FaLinkedin, href: "#" }
-        ]
+   
       },
       communityDevelopment: {
         title: "Community Development",
@@ -80,14 +72,7 @@ export default function Footer({ footerData }) {
               <p>Email: <a href={`mailto:${sections.connect.email}`} className="text-red-400 hover:text-red-300 break-all">{sections.connect.email}</a></p>
             </div>
             <div className="flex justify-center lg:justify-start gap-3 sm:gap-4 flex-wrap">
-              {sections.connect.socialLinks.map((social, index) => {
-                const IconComponent = social.icon;
-                return (
-                  <a key={index} href={social.href} className="text-gray-400 hover:text-red-400 text-lg sm:text-xl">
-                    <IconComponent />
-                  </a>
-                );
-              })}
+          
             </div>
           </div>
 

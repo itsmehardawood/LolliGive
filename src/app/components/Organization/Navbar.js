@@ -1,13 +1,17 @@
 "use client";
+import { useState } from 'react';
 
 export default function Navbar({ navbarData, organizationSlug }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const {
     logo = "LolliGive",
     organizationName,
     menuItems = [
       { label: "Home", href: "#home" },
       { label: "About", href: "#about" },
-      { label: "Contact", href: "#contact" }
+      { label: "Contact", href: "#contact" },
+      { label: "Ministry | Groups", href: "#about" }
+
     ],
     donateButton = {
       text: "Donate Now",
@@ -25,6 +29,8 @@ export default function Navbar({ navbarData, organizationSlug }) {
         });
       }
     }
+    // Close mobile menu after navigation
+    setIsMenuOpen(false);
   };
 
   const handleDonateClick = () => {
@@ -47,15 +53,15 @@ export default function Navbar({ navbarData, organizationSlug }) {
             </div>
             {organizationName && (
               <>
-                <div className="text-gray-400">|</div>
-                <div className="text-lg font-medium text-gray-700">
+                <div className="text-gray-400 hidden sm:block">|</div>
+                <div className="text-lg font-medium text-gray-700 hidden sm:block">
                   {organizationName}
                 </div>
               </>
             )}
           </div>
 
-          {/* Navigation Menu */}
+          {/* Desktop Navigation Menu */}
           <div className="hidden md:flex items-center space-x-8">
             {menuItems.map((item, index) => (
               <a
@@ -72,14 +78,70 @@ export default function Navbar({ navbarData, organizationSlug }) {
             ))}
           </div>
 
-          {/* Donate Button */}
+          {/* Desktop Donate Button */}
           <button
             onClick={handleDonateClick}
-            className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+            className="hidden md:block bg-red-800 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
           >
             {donateButton.text}
           </button>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-700 hover:text-red-800 focus:outline-none focus:text-red-800 p-2"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                {isMenuOpen ? (
+                  <path d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
+              {menuItems.map((item, index) => (
+                <a
+                  key={index}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSmoothScroll(item.href);
+                  }}
+                  className="text-gray-700 hover:text-red-800 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium cursor-pointer"
+                >
+                  {item.label}
+                </a>
+              ))}
+              {/* Mobile Donate Button */}
+              <button
+                onClick={() => {
+                  handleDonateClick();
+                  setIsMenuOpen(false);
+                }}
+                className="w-full bg-red-800 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors mt-3"
+              >
+                {donateButton.text}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

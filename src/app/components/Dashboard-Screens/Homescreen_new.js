@@ -68,9 +68,9 @@ function HomeScreen({ status, setActiveTab }) {
   const getStatusMessage = (currentStatus) => {
     switch (currentStatus) {
       case 'incomplete-profile':
-        return 'Please complete your business profile to continue';
+        return 'Please complete your organization profile to continue';
       case 'incomplete':
-        return 'Please update your business profile based on feedback';
+        return 'Please update your organization profile based on feedback';
       case 'pending':
         return 'Your application is under review';
       case 'approved':
@@ -109,7 +109,7 @@ function HomeScreen({ status, setActiveTab }) {
         </div>
         
         <div className="p-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             
             {/* Status Card */}
             <div className={`${statusStyling.bgColor} ${statusStyling.borderColor} p-5 rounded-lg border transition-all hover:shadow-md`}>
@@ -163,38 +163,7 @@ function HomeScreen({ status, setActiveTab }) {
               )}
             </div>
 
-            {/* Quick Actions Card */}
-            <div className="bg-gray-900 p-5 rounded-lg border border-gray-700 transition-all hover:shadow-md">
-              <div className="flex items-center mb-3">
-                <div className="p-2 rounded-full mr-3">
-                  <FiZap className="text-green-500 text-xl" />
-                </div>
-                <h3 className="font-semibold text-white">Quick Actions</h3>
-              </div>
-              <div className="space-y-3">
-                <button 
-                  onClick={() => setActiveTab('profile')}
-                  className="w-full flex items-center justify-between text-gray-300 hover:text-white text-sm font-medium p-2 hover:bg-gray-800 rounded transition-colors"
-                >
-                  <span>{status === 'approved' || status === 'active' ? 'View Profile' : 'Complete Profile'}</span>
-                  <span>→</span>
-                </button>
-                <button 
-                  onClick={() => setActiveTab('documents')}
-                  className="w-full flex items-center justify-between text-gray-300 hover:text-white text-sm font-medium p-2 hover:bg-gray-800 rounded transition-colors"
-                >
-                  <span>{status === 'approved' || status === 'active' ? 'View Documents' : 'Upload Documents'}</span>
-                  <span>→</span>
-                </button>
-                <button 
-                  onClick={() => setActiveTab('developers')}
-                  className="w-full flex items-center justify-between text-gray-300 hover:text-white text-sm font-medium p-2 hover:bg-gray-800 rounded transition-colors"
-                >
-                  <span>API Access</span>
-                  <span>→</span>
-                </button>
-              </div>
-            </div>
+          
 
             {/* Support Card - Simplified */}
             <div className="bg-gray-900 p-5 rounded-lg border border-gray-700 transition-all hover:shadow-md">
@@ -222,15 +191,15 @@ function HomeScreen({ status, setActiveTab }) {
             <div className="mt-8 p-5 bg-gray-900 border border-gray-700 rounded-lg">
               <h3 className="font-semibold text-white mb-3 flex items-center">
                 <FiAlertCircle className="mr-2" />
-                Complete Your Business Profile
+                Complete Your Organization Profile
               </h3>
               <p className="text-gray-300 text-sm mb-4">
-                Welcome! To get started, please complete your business profile.
+                Welcome! To get started, please complete your organization profile.
               </p>
               <ul className="space-y-2 text-gray-300 text-sm">
                 <li className="flex items-start">
                   <span className="inline-block bg-gray-700 text-white rounded-full p-1 mr-2">✓</span>
-                  Business name and registration details
+                  Organization name and registration details
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block bg-gray-700 text-white rounded-full p-1 mr-2">✓</span>
@@ -238,7 +207,7 @@ function HomeScreen({ status, setActiveTab }) {
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block bg-gray-700 text-white rounded-full p-1 mr-2">✓</span>
-                  Upload business registration document
+                  Upload organization registration document
                 </li>
                 <li className="flex items-start">
                   <span className="inline-block bg-gray-700 text-white rounded-full p-1 mr-2">✓</span>

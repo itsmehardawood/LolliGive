@@ -141,30 +141,31 @@ export default function DonationSection({ donationData, organizationSlug }) {
   };
 
   return (
- <section className="py-0 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
+
+    <section className="py-0 sm:py-12 lg:py-16 bg-black px-4 sm:px-6 lg:px-8">
   <div className="max-w-7xl mx-auto">
     {/* Header */}
     <div className="mb-12 text-center">
       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-800 mb-4">
         {title}
       </h2>
-      <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto">
+      <p className="text-base sm:text-lg text-white max-w-5xl mx-auto">
         {subtitle}
       </p>
     </div>
 
     {/* Form Wrapper */}
     <div className="flex justify-center">
-      <div className="w-full sm:w-[500px] lg:w-[600px] bg-white rounded-xl shadow-xl border p-6 sm:p-8 lg:p-10">
+      <div className="w-full sm:w-[500px] lg:w-[600px] bg-black text-white rounded-xl shadow-xl border border-white p-6 sm:p-8 lg:p-10">
         {step === 1 ? (
           <div>
-            <h3 className="text-xl font-bold text-red-800 mb-6">
+            <h3 className="text-xl font-bold text-red-700 mb-6">
               Step 1: Donation Details
             </h3>
 
             {/* Amount Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-white mb-3">
                 Select Amount *
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
@@ -174,8 +175,8 @@ export default function DonationSection({ donationData, organizationSlug }) {
                     onClick={() => handleAmountSelect(amount)}
                     className={`py-2 px-3 rounded-lg border text-sm font-medium transition ${
                       formData.amount === amount.toString()
-                        ? 'bg-red-800 text-white border-red-800'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-red-800'
+                        ? 'bg-red-600 text-white border-red-600'
+                        : 'bg-black text-white border-white hover:border-red-600'
                     }`}
                   >
                     ${amount}
@@ -184,7 +185,7 @@ export default function DonationSection({ donationData, organizationSlug }) {
               </div>
 
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white">
                   $
                 </span>
                 <input
@@ -192,19 +193,19 @@ export default function DonationSection({ donationData, organizationSlug }) {
                   placeholder="Custom amount"
                   value={formData.customAmount}
                   onChange={handleCustomAmountChange}
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800"
+                  className="w-full pl-8 pr-4 py-2 border border-white rounded-lg bg-black text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600"
                   min="1"
                   step="0.01"
                 />
               </div>
               {errors.amount && (
-                <p className="text-red-600 text-sm mt-1">{errors.amount}</p>
+                <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
               )}
             </div>
 
             {/* Name */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Full Name *
               </label>
               <input
@@ -212,34 +213,38 @@ export default function DonationSection({ donationData, organizationSlug }) {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800"
+                className="w-full px-4 py-2 border border-white rounded-lg bg-black text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600"
                 placeholder="Enter your full name"
               />
               {errors.name && (
-                <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
               )}
             </div>
 
             {/* Purpose/Reason */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Donation Purpose *
               </label>
               <select
                 name="purpose_reason"
                 value={formData.purpose_reason}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800"
+                className="w-full px-4 py-2 border border-white rounded-lg bg-black text-white focus:outline-none focus:ring-2 focus:ring-red-600"
               >
-                <option value="">Select donation purpose</option>
+                <option value="" className="text-white bg-gray-900">Select donation purpose</option>
                 {donationReasons.map((reason) => (
-                  <option key={reason.value} value={reason.value}>
+                  <option
+                    key={reason.value}
+                    value={reason.value}
+                    className="text-white bg-black"
+                  >
                     {reason.label}
                   </option>
                 ))}
               </select>
               {errors.purpose_reason && (
-                <p className="text-red-600 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.purpose_reason}
                 </p>
               )}
@@ -247,7 +252,7 @@ export default function DonationSection({ donationData, organizationSlug }) {
 
             {/* Comment */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Optional Note
               </label>
               <textarea
@@ -255,30 +260,28 @@ export default function DonationSection({ donationData, organizationSlug }) {
                 value={formData.comment}
                 onChange={handleInputChange}
                 rows="3"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800"
+                className="w-full px-4 py-2 border border-white rounded-lg bg-black text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600"
                 placeholder="Add a personal note (optional)"
               ></textarea>
             </div>
 
             <button
               onClick={handleProceed}
-              className="w-full bg-red-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 transition"
+              className="w-full bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-500 transition"
             >
               Proceed to Payment
             </button>
           </div>
         ) : (
           <div>
-            <h3 className="text-xl font-bold text-red-800 mb-6">
+            <h3 className="text-xl font-bold text-red-700 mb-6">
               Step 2: Payment Method
             </h3>
 
             {/* Donation Summary */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h4 className="font-semibold text-gray-800 mb-2">
-                Donation Summary
-              </h4>
-              <div className="text-sm text-gray-600 space-y-1">
+            <div className="bg-white text-black rounded-lg p-4 mb-6">
+              <h4 className="font-semibold mb-2">Donation Summary</h4>
+              <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span>Amount:</span>
                   <span className="font-medium">${formData.amount}</span>
@@ -302,7 +305,7 @@ export default function DonationSection({ donationData, organizationSlug }) {
 
             {/* Payment Methods */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-white mb-3">
                 Choose Payment Method *
               </label>
               <div className="space-y-3">
@@ -312,17 +315,15 @@ export default function DonationSection({ donationData, organizationSlug }) {
                     onClick={() => handlePaymentMethodSelect(method.id)}
                     className={`p-4 border rounded-lg cursor-pointer transition ${
                       formData.paymentMethod === method.id
-                        ? 'border-red-800 bg-red-50'
-                        : 'border-gray-300 hover:border-red-800'
+                        ? 'border-red-600 bg-red-700 text-white'
+                        : 'border-white text-white hover:border-red-600'
                     }`}
                   >
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">{method.icon}</span>
                       <div>
-                        <h5 className="font-medium text-gray-800">
-                          {method.name}
-                        </h5>
-                        <p className="text-sm text-gray-600">
+                        <h5 className="font-medium">{method.name}</h5>
+                        <p className="text-sm text-gray-300">
                           {method.description}
                         </p>
                       </div>
@@ -331,7 +332,7 @@ export default function DonationSection({ donationData, organizationSlug }) {
                 ))}
               </div>
               {errors.paymentMethod && (
-                <p className="text-red-600 text-sm mt-1">
+                <p className="text-red-500 text-sm mt-1">
                   {errors.paymentMethod}
                 </p>
               )}
@@ -340,13 +341,13 @@ export default function DonationSection({ donationData, organizationSlug }) {
             <div className="flex space-x-3">
               <button
                 onClick={() => setStep(1)}
-                className="flex-1 bg-gray-300 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-400 transition"
+                className="flex-1 bg-white text-black py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
               >
                 Back
               </button>
               <button
                 onClick={handleFinalSubmit}
-                className="flex-1 bg-red-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 transition"
+                className="flex-1 bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-500 transition"
               >
                 Complete Donation
               </button>
@@ -357,6 +358,7 @@ export default function DonationSection({ donationData, organizationSlug }) {
     </div>
   </div>
 </section>
+
 
   );
 }

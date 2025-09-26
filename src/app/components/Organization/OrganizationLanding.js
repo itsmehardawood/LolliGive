@@ -3,11 +3,10 @@ import Hero from '../Organization/Hero';
 import RedSection from '../Organization/RedSection';
 import ContactSection from '../Organization/ContactUs';
 import AboutUs from '../Organization/AboutUs';
-import ServiceTimes from '../Organization/ServiceTimes';
-import PreachingSection from '../Organization/PreachingSection';
 import DonationSection from '../Organization/DonationSection';
 import Footer from '../Organization/Footer';
 import Navbar from '../Organization/Navbar';
+import VideoSection from './VideoSection';
 
 export default function OrganizationLanding({ organizationData, organizationSlug }) {
   // Extract organization-specific data
@@ -22,6 +21,7 @@ export default function OrganizationLanding({ organizationData, organizationSlug
     preachingData = {},
     footerData = {},
     navbarData = {},
+    videoData = {},
   } = organizationData || {};
 
 
@@ -66,22 +66,22 @@ export default function OrganizationLanding({ organizationData, organizationSlug
           </div>
         </section>
 
-        {/* Service Times Section */}
-        {/* <section id="service-times" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <SectionHeader title="SERVICE TIMES" />
-            <ServiceTimes serviceData={serviceTimesData} />
-          </div>
-        </section> */}
-
+      
                 {/* Donation Section */}
 
 
-  <section id="donate" className="py-8 sm:py-12 lg:py-16 bg-gray-50 px-4 sm:px-6 lg:px-8">
+  <section id="donate" className="py-8 sm:py-12 lg:py-5 bg-black  px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <DonationSection donationData={donationData} organizationSlug={organizationSlug} />
           </div>
         </section>
+
+        <section id="video" className="py-8 sm:py-12 lg:py-16 bg-white px-4 sm:px-6 lg:px-8">   
+          <div className="max-w-7xl mx-auto">
+          <SectionHeader title="WATCH OUR STORY" />
+            <VideoSection videoData={videoData} />
+          </div>
+        </section>  
 
 
         {/* Contact Section */}
@@ -94,12 +94,7 @@ export default function OrganizationLanding({ organizationData, organizationSlug
 
       
 
-        {/* Preaching/Ministry Section */}
-        {/* <section id="ministry" className="py-8 sm:py-12 lg:py-16 bg-gray-100 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <PreachingSection preachingData={preachingData} />
-          </div>
-        </section> */}
+     
       </div>
 
       {/* Fixed Footer at the bottom */}
