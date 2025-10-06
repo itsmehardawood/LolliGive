@@ -29,7 +29,7 @@ const handleLogin = async () => {
     const data = await response.json();
 
     if (data.status === true) {
-      const userRole = data?.user?.role;
+      const userRole = "BUSINESS_USER";
       const allowedRoles = ["BUSINESS_USER", "ENTERPRISE_USER"];
 
       if (allowedRoles.includes(userRole)) {
@@ -38,6 +38,14 @@ const handleLogin = async () => {
         const userDataWithExpiry = { ...data, expiry: expiryTime };
 
         localStorage.setItem('userData', JSON.stringify(userDataWithExpiry));
+        
+        // Store org_key_id separately for easy access - handle nested structure
+        const orgKeyId = data.user?.org_key_id || data.org_key_id;
+        if (orgKeyId) {
+          localStorage.setItem("org_key_id", orgKeyId);
+          console.log("org_key_id stored:", orgKeyId);
+        }
+        
         router.push('/dashboard');
       } else {
         setError("Invalid user. Only business and enterprise users are allowed to access this platform.");

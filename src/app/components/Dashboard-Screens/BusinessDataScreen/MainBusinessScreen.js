@@ -35,26 +35,92 @@ function MainBusinessScreen({
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        // console.log("User data found in localStorage:", parsedUser);
+        console.log("User data found in localStorage:", parsedUser);
 
-        // Handle nested user object structure
+        // Handle nested user object structure - extract the user object
         const userObj = parsedUser.user || parsedUser;
-        setUserData(userObj);
+        
+        // Set userData with organization_verified for easy access
+        // Check multiple possible locations for organization_verified
+        const orgVerified = userObj.organization_verified || 
+                           userObj.business_verified || 
+                           parsedUser.organization_verified ||
+                           parsedUser.business_verified;
+        
+        const enhancedUserObj = {
+          ...userObj,
+          organization_verified: orgVerified,
+          business_verified: orgVerified // Keep for compatibility
+        };
+        
+        setUserData(enhancedUserObj);
+        console.log("Enhanced userData set:", enhancedUserObj);
 
         // Fetch business verification status from API
-        if (userObj.id) {
+        const orgKeyId = userObj.org_key_id || localStorage.getItem("org_key_id");
+        
+        if (orgKeyId) {
           const response = await apiFetch(
-            `/business-profile/business-verification-status?user_id=${userObj.id}`
+            `/organization-profile/get-by-org-key-id?org_key_id=${orgKeyId}`
           );
       
           if (response.ok) {
             const data = await response.json();
-            // console.log("Business verification data:", data);
-            setVerificationData(data);
-            setApiError(null); // Clear any previous errors
+            console.log("Organization verification API response:", data);
+            
+            // Handle array response structure - take first item if it's an array
+            if (data.status && data.data && Array.isArray(data.data) && data.data.length > 0) {
+              // Transform array response to match expected structure
+              const transformedData = {
+                status: data.status,
+                data: {
+                  business_profile: data.data[0],
+                  business_verified: data.data[0].user?.organization_verified,
+                  verification_status: data.data[0].user?.organization_verified,
+                  verification_reason: data.data[0].user?.verification_reason,
+                  user_id: data.data[0].user_id
+                }
+              };
+              console.log("Transformed verification data:", transformedData);
+              setVerificationData(transformedData);
+              setApiError(null);
+              
+              // Update localStorage with the latest verification status
+              const latestOrgVerified = data.data[0].user?.organization_verified;
+              if (latestOrgVerified && storedUser) {
+                try {
+                  const updatedStorage = {
+                    ...parsedUser,
+                    user: {
+                      ...(parsedUser.user || parsedUser),
+                      organization_verified: latestOrgVerified,
+                      business_verified: latestOrgVerified
+                    }
+                  };
+                  localStorage.setItem("userData", JSON.stringify(updatedStorage));
+                  console.log("Updated localStorage with verification status:", latestOrgVerified);
+                  
+                  // Also update the state
+                  setUserData({
+                    ...enhancedUserObj,
+                    organization_verified: latestOrgVerified,
+                    business_verified: latestOrgVerified
+                  });
+                } catch (err) {
+                  console.error("Error updating localStorage:", err);
+                }
+              }
+            } else if (data.status && data.data) {
+              // Handle non-array response
+              setVerificationData(data);
+              setApiError(null);
+            } else {
+              console.error("Invalid API response structure:", data);
+              setApiError("Invalid response from server");
+            }
           } else {
-            console.error("Failed to fetch business verification status");
-            setApiError("Failed to load business verification status");
+            console.error("Failed to fetch organization verification status");
+            setApiError("Failed to load organization verification status");
           }
         }
       }
@@ -76,10 +142,10 @@ function MainBusinessScreen({
     
     //when 'incomplete' status
     if (status === 'incomplete' && profile) {
-      setBusinessInfo({
-        business_name: profile.business_name || '',
-        business_registration_number: profile.business_registration_number || '',
-        email: userData.email || '',
+      setBusinessInfo((prev) => ({
+        organization_name: profile.organization_name || '',
+        organization_registration_number: profile.organization_registration_number || '',
+        email: profile.email || '',
         street: profile.street || '',
         street_line2: profile.street_line2 || '',
         city: profile.city || '',
@@ -98,9 +164,10 @@ function MainBusinessScreen({
         account_holder_country: profile.account_holder_country || '',
         account_holder_id_type: profile.account_holder_id_type || '',
         account_holder_id_number: profile.account_holder_id_number || '',
-        account_holder_id_document: null, // Add this field
-        registration_document: null // always empty for re-upload
-      });
+        // IMPORTANT: Preserve existing uploaded files if they exist
+        account_holder_id_document: prev.account_holder_id_document || null,
+        registration_document: prev.registration_document || null
+      }));
     }
     // to autofill email when user SignUp first-time and route to dashboard form
     else if (status === 'incomplete-profile') {
@@ -182,13 +249,28 @@ function MainBusinessScreen({
   }
 
   // Check verification status and render appropriate view
+  // Handle both old and new API response structures
   const verificationStatus = verificationData?.data?.business_verified;
+  
+  // Also check organization_verified from userData (stored in localStorage during login)
+  // Check both organization_verified and business_verified for backward compatibility
+  const organizationVerified = userData?.organization_verified || userData?.business_verified;
 
-  if (verificationStatus === "APPROVED") {
+  // Priority: Use organization_verified from userData if available, fallback to verification status from API
+  const currentStatus = organizationVerified || verificationStatus;
+  
+  console.log("Current verification status:", {
+    fromUserData: organizationVerified,
+    fromAPI: verificationStatus,
+    final: currentStatus,
+    userDataKeys: userData ? Object.keys(userData) : 'no userData'
+  });
+
+  if (currentStatus === "APPROVED" || currentStatus === "VERIFIED" || currentStatus === "ACTIVE") {
     return <ApprovedStatus verificationData={verificationData} />;
   }
 
-  if (verificationStatus === "PENDING" || status === "pending") {
+  if (currentStatus === "PENDING" || status === "pending") {
     return (
       <PendingStatus 
         verificationData={verificationData}

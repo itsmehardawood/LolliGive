@@ -3,7 +3,19 @@ import React from 'react';
 import { Clock, CheckCircle, Building, User, Shield, FileText, Calendar, RotateCcw, Eye } from 'lucide-react';
 
 const PendingStatus = ({ verificationData, userData, submitSuccess, handleManualReload, router }) => {
-  const profile = verificationData?.data?.business_profile;
+  // Handle both array and object response structures
+  let profile;
+  
+  if (Array.isArray(verificationData?.data)) {
+    // New API structure: data is an array
+    profile = verificationData?.data[0];
+  } else if (verificationData?.data?.business_profile) {
+    // Old API structure: business_profile nested in data
+    profile = verificationData?.data?.business_profile;
+  } else {
+    // Direct data object
+    profile = verificationData?.data;
+  }
   
   return (
     <div className="min-h-screen bg-black py-8 px-4">
@@ -18,7 +30,7 @@ const PendingStatus = ({ verificationData, userData, submitSuccess, handleManual
               Application Under Review
             </h1>
             <p className="text-gray-300 max-w-2xl mx-auto">
-              Your business profile has been submitted and is currently being reviewed by our team. 
+              Your Organization profile has been submitted and is currently being reviewed by our team. 
               We will notify you once the review is complete.
             </p>
           </div>
@@ -53,13 +65,13 @@ const PendingStatus = ({ verificationData, userData, submitSuccess, handleManual
                 <div>
                   <label className="text-sm font-medium text-gray-400 block mb-1">Business Name</label>
                   <p className="text-base text-white">
-                    {profile?.business_name || 'null'}
+                    {profile?.organization_name || 'null'}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-400 block mb-1">Registration Number</label>
                   <p className="text-base text-white font-mono bg-gray-900 px-3 py-2 rounded-md">
-                    {profile?.business_registration_number || 'null'}
+                    {profile?.organization_registration_number || 'null'}
                   </p>
                 </div>
               </div>

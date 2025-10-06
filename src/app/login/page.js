@@ -173,6 +173,14 @@ const handleSignIn = async (e) => {
       const userDataWithExpiry = { ...data, expiry: expiryTime };
 
       localStorage.setItem("userData", JSON.stringify(userDataWithExpiry));
+      
+      // Store org_key_id separately for easy access - handle nested structure
+      const orgKeyId = data.user?.org_key_id || data.org_key_id;
+      if (orgKeyId) {
+        localStorage.setItem("org_key_id", orgKeyId);
+        console.log("org_key_id stored:", orgKeyId);
+      }
+      
       setApiUserData(userDataWithExpiry);
 
       console.log("User data stored in localStorage with expiry:", userDataWithExpiry);

@@ -301,12 +301,14 @@ useEffect(() => {
         user: {
           id: data.user.id,
           merchant_id: data.user.merchant_id,
+          org_key_id: data.user.org_key_id,
           email: data.user.email,
           phone: data.user.phone_no,
           country_code: data.user.country_code,
           country_name: data.user.country_name,
           otp_verified: true, // We know it's verified since we got here
           business_verified: data.user.business_verified,
+          organization_verified: data.user.organization_verified,
           verification_reason: data.user.verification_reason,
           role: data.user.role,
           created_at: data.user.created_at,
@@ -317,6 +319,13 @@ useEffect(() => {
       };
 
       localStorage.setItem("userData", JSON.stringify(userData));
+      
+      // Store org_key_id separately for easy access
+      if (data.user.org_key_id) {
+        localStorage.setItem("org_key_id", data.user.org_key_id);
+        console.log("org_key_id stored:", data.user.org_key_id);
+      }
+      
       console.log("Account created and verified successfully:", userData);
 
       setSuccess(

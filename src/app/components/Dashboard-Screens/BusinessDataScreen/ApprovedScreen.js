@@ -3,7 +3,19 @@ import React from 'react';
 import { CheckCircle, Building, User, Shield, FileText, Calendar, Eye, ExternalLink } from 'lucide-react';
 
 const ApprovedStatus = ({ verificationData }) => {
-  const profile = verificationData?.data?.business_profile;
+  // Handle both array and object response structures
+  let profile;
+  
+  if (Array.isArray(verificationData?.data)) {
+    // New API structure: data is an array
+    profile = verificationData?.data[0];
+  } else if (verificationData?.data?.business_profile) {
+    // Old API structure: business_profile nested in data
+    profile = verificationData?.data?.business_profile;
+  } else {
+    // Direct data object
+    profile = verificationData?.data;
+  }
 
   return (
     <div className="min-h-screen bg-black py-8 px-4">
@@ -40,13 +52,13 @@ const ApprovedStatus = ({ verificationData }) => {
                 <div>
                   <label className="text-sm font-medium text-gray-400 block mb-1">Business Name</label>
                   <p className="text-base font-semibold text-white">
-                    {profile?.business_name || 'null'}
+                    {profile?.organization_name || 'null'}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-400 block mb-1">Registration Number</label>
                   <p className="text-base text-white font-mono bg-gray-900 px-3 py-2 rounded-md">
-                    {profile?.business_registration_number || 'null'}
+                    {profile?.organization_registration_number || 'null'}
                   </p>
                 </div>
                 <div>

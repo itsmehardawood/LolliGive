@@ -261,11 +261,11 @@ function HomeScreen({ status, setActiveTab }) {
           )}
 
           {/* Scan Analytics - Only show for approved users */}
-          {status === 'approved' && (
+          {/* {status === 'approved' && (
             <div className="mt-8">
               <GraphData />
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>

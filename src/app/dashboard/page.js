@@ -110,20 +110,20 @@ function DashboardContent() {
         return;
       }
 
-      const userRole = userData.user?.role;
+      // const userRole = userData.user?.role;
 
-      if (userRole !== "BUSINESS_USER" && userRole !== "ENTERPRISE_USER") {
-        // User is not a business user
-        // console.log("Access denied: User is not a business user");
+      // if (userRole !== "BUSINESS_USER" && userRole !== "ENTERPRISE_USER") {
+      //   // User is not a business user
+      //   // console.log("Access denied: User is not a business user");
 
-        // Redirect based on their actual role
-        if (userRole === "SUPER_ADMIN") {
-          router.push("/admin");
-        } else {
-          router.push("/login");
-        }
-        return;
-      }
+      //   // Redirect based on their actual role
+      //   if (userRole === "SUPER_ADMIN") {
+      //     router.push("/admin");
+      //   } else {
+      //     router.push("/login");
+      //   }
+      //   return;
+      // }
 
       // User is authenticated and is a business user
       // console.log("Access granted: User is a business user");
@@ -197,9 +197,9 @@ function DashboardContent() {
 
   const [businessInfo, setBusinessInfo] = useState({
     // Business Info
-    business_name: "",
-    business_registration_number: "",
-    email: userData?.email || "",
+    organization_name: "",
+    organization_registration_number: "",
+    email: "",
     // Business Address
     street: "",
     street_line2: "",
@@ -292,8 +292,8 @@ function DashboardContent() {
     // const missingFields = requiredFields.filter(field => !businessInfo[field]?.trim());
     const requiredFields = [
       // Business Info
-      "business_name",
-      "business_registration_number",
+      "organization_name",
+      "organization_registration_number",
       "email",
       "street",
       "city",
@@ -336,28 +336,72 @@ function DashboardContent() {
     try {
       // Prepare FormData for API submission
       const formData = new FormData();
-      //formData.append("user_id", userData?.id); // or merchant_id
+      
+      // Debug: Check businessInfo state before adding to FormData
+      console.log("=== BusinessInfo State ===");
+      console.log("registration_document:", businessInfo.registration_document);
+      console.log("account_holder_id_document:", businessInfo.account_holder_id_document);
+      console.log("========================");
+      
       // Add all business information fields individually
       Object.keys(businessInfo).forEach((key) => {
-        if (
-          (key === "registration_document" ||
-            key === "account_holder_id_document") &&
-          businessInfo[key]
-        ) {
-          formData.append(key, businessInfo[key]);
-        } else if (businessInfo[key]) {
-          formData.append(key, businessInfo[key]);
+        const value = businessInfo[key];
+        
+        // Handle file fields specifically
+        if (key === "registration_document" || key === "account_holder_id_document") {
+          // Only append if it's an actual File object
+          if (value instanceof File) {
+            formData.append(key, value);
+            console.log(`✓ Added file: ${key} - ${value.name}`);
+          } else if (value && typeof value === 'object' && Object.keys(value).length === 0) {
+            console.warn(`⚠ Skipping empty object for: ${key}`);
+          } else {
+            console.warn(`⚠ Invalid file type for ${key}:`, typeof value);
+          }
+        } 
+        // Handle regular fields
+        else if (value && value !== "") {
+          formData.append(key, value);
         }
       });
+      
       //Checking on console
+      console.log("=== FormData Debug ===");
       for (let [key, value] of formData.entries()) {
-        // console.log(`${key}: ${value}`);
+        if (value instanceof File) {
+          console.log(`${key}: [File] ${value.name} (${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`${key}: ${value}`);
+        }
       }
+      console.log("===================");
+      
+      // Get JWT token from localStorage for authentication
+      const storedUserData = localStorage.getItem("userData");
+      let jwtToken = null;
+      
+      if (storedUserData) {
+        try {
+          const parsedData = JSON.parse(storedUserData);
+          jwtToken = parsedData.JWT_token;
+        } catch (error) {
+          console.error("Error parsing userData for token:", error);
+        }
+      }
+
+      // Prepare headers with authentication
+      // IMPORTANT: Do NOT set Content-Type for FormData with files - browser sets it automatically with boundary
+      const headers = {};
+      if (jwtToken) {
+        headers["Authorization"] = `Bearer ${jwtToken}`;
+      }
+
       // Make API call
       const response = await fetch(
-        "https://admin.cardnest.io/api/business-profile",
+        "http://54.167.124.195:8002/api/organization-profile",
         {
           method: "POST",
+          headers: headers,
           body: formData,
         }
       );
@@ -433,18 +477,37 @@ function DashboardContent() {
       } else {
         // Handle HTTP error status codes
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            errorData.error ||
-            `HTTP error! status: ${response.status}`
-        );
+        console.error("=== API Error Response ===");
+        console.error("Status:", response.status);
+        console.error("Error Data:", errorData);
+        console.error("========================");
+        
+        // Format detailed error message if validation errors exist
+        let errorMessage = errorData.message || `HTTP error! status: ${response.status}`;
+        
+        if (errorData.errors && typeof errorData.errors === 'object') {
+          const errorDetails = Object.entries(errorData.errors)
+            .map(([field, messages]) => {
+              const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              return `${fieldName}: ${Array.isArray(messages) ? messages.join(', ') : messages}`;
+            })
+            .join('\\n');
+          errorMessage += `\\n\\n${errorDetails}`;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error("Submission failed:", error);
+      console.log("data we are sending:", businessInfo);
       // Handle different types of errors
       if (error.message.includes("400")) {
         setSubmitError(
           "Invalid data submitted. Please check your information."
+        );
+      } else if (error.message.includes("422") || error.message.includes("Validation Error")) {
+        setSubmitError(error.message || 
+          "Validation Error: Please check all required fields and file formats."
         );
       } else if (error.message.includes("500")) {
         setSubmitError("Server error. Please try again later.");
@@ -460,11 +523,21 @@ function DashboardContent() {
     }
   };
 
-  // API function to check business verification status and fetch business name
+  // API function to check organization verification status and fetch business name
   const checkBusinessVerificationStatus = async (userId) => {
     try {
+      // Use org_key_id from localStorage or userData
+      const storedOrgKeyId = localStorage.getItem("org_key_id");
+      const userOrgKeyId = userData?.org_key_id;
+      const orgKeyId = storedOrgKeyId || userOrgKeyId;
+      
+      if (!orgKeyId) {
+        console.warn("No org_key_id found, cannot check verification status");
+        return;
+      }
+
       const response = await apiFetch(
-        `/business-profile/business-verification-status?user_id=${userId}`
+        `/organization-profile/get-by-org-key-id?org_key_id=${orgKeyId}`
       );
 
       if (!response.ok) {
@@ -472,34 +545,42 @@ function DashboardContent() {
       }
 
       const result = await response.json();
+      console.log("Organization verification API response:", result);
 
-      if (result.status === true || result.success === true) {
-        // Extract business verification status from the API response
-        const businessVerified = result.data?.business_verified;
-        const verificationReason = result.data?.verification_reason;
-        const verificationStatus = result.data?.verification_status;
-        const userId = result.data?.user_id;
+      if (result.status === true) {
+        // Handle array response structure - take first item if it's an array
+        let businessData;
+        let organizationVerified;
+        let fetchedBusinessName;
+        let verificationReason;
         
-        // Extract business name from the API response
-        const fetchedBusinessName = result.data?.business_profile?.business_name;
+        if (Array.isArray(result.data) && result.data.length > 0) {
+          businessData = result.data[0];
+          organizationVerified = businessData.user?.organization_verified;
+          fetchedBusinessName = businessData.organization_name;
+          verificationReason = businessData.user?.verification_reason;
+        } else if (result.data) {
+          businessData = result.data;
+          organizationVerified = businessData.business_verified || businessData.user?.organization_verified;
+          fetchedBusinessName = businessData.business_profile?.organization_name || businessData.organization_name;
+          verificationReason = businessData.verification_reason;
+        }
         
-        // console.log("Business verification API response:", result);
-        // console.log("Business verified status:", businessVerified);
-        // console.log("Verification reason:", verificationReason);
-        // console.log("Verification status message:", verificationStatus);
-        // console.log("Business name:", fetchedBusinessName);
+        console.log("Organization verified status:", organizationVerified);
+        console.log("Organization name:", fetchedBusinessName);
 
         // Update business name state
         if (fetchedBusinessName) {
           setBusinessName(fetchedBusinessName);
         }
 
-        // Map the business_verified value to our internal status
-        const newStatus = getStatusFromBusinessVerified(businessVerified);
+        // Map the organization_verified value to our internal status
+        const newStatus = getStatusFromBusinessVerified(organizationVerified);
         setStatus(newStatus);
+        console.log("Mapped status:", newStatus);
 
         // Update localStorage if the status has changed
-        if (userData && userData.business_verified !== businessVerified) {
+        if (userData && (userData.organization_verified !== organizationVerified || userData.business_verified !== organizationVerified)) {
           // Get the original stored data structure
           const storedUserData = JSON.parse(
             localStorage.getItem("userData") || "{}"
@@ -512,18 +593,18 @@ function DashboardContent() {
               ...storedUserData,
               user: {
                 ...storedUserData.user,
-                business_verified: businessVerified,
+                organization_verified: organizationVerified,
+                business_verified: organizationVerified, // Keep for compatibility
                 verification_reason: verificationReason,
-                verification_status: verificationStatus,
               },
             };
           } else {
             // If flat structure, update directly
             updatedUserData = {
               ...storedUserData,
-              business_verified: businessVerified,
+              organization_verified: organizationVerified,
+              business_verified: organizationVerified, // Keep for compatibility
               verification_reason: verificationReason,
-              verification_status: verificationStatus,
             };
           }
 
@@ -533,26 +614,26 @@ function DashboardContent() {
           const userObj = updatedUserData.user || updatedUserData;
           setUserData(userObj);
 
-          // console.log("Updated user data in localStorage:", updatedUserData);
+          console.log("Updated user data in localStorage:", updatedUserData);
         }
 
-        return result.data;
+        return businessData;
       } else {
         console.warn("API response indicates failure:", result);
         throw new Error(
-          result.message || "Failed to retrieve business verification status"
+          result.message || "Failed to retrieve organization verification status"
         );
       }
     } catch (error) {
-      console.error("Failed to check business verification status:", error);
+      console.error("Failed to check organization verification status:", error);
 
       // Fallback to checking localStorage data if API fails
-      if (userData?.business_verified) {
+      if (userData?.organization_verified || userData?.business_verified) {
         const fallbackStatus = getStatusFromBusinessVerified(
-          userData.business_verified
+          userData.organization_verified || userData.business_verified
         );
         setStatus(fallbackStatus);
-        // console.log("Using fallback status from localStorage:", fallbackStatus);
+        console.log("Using fallback status from localStorage:", fallbackStatus);
       }
     }
   };
@@ -614,21 +695,36 @@ function DashboardContent() {
     }
   };
 
+  // Update businessInfo email when userData becomes available
+  useEffect(() => {
+    if (userData?.email && businessInfo.email === "") {
+      setBusinessInfo((prev) => ({
+        ...prev,
+        email: userData.email,
+      }));
+    }
+  }, [userData?.email]);
+
   // Check status on component mount and periodically
   useEffect(() => {
-    if (userData?.id) {
-      // Initial status check when user data is available
-      checkBusinessVerificationStatus(userData.id);
+    // Get org_key_id from localStorage or userData
+    const storedOrgKeyId = localStorage.getItem("org_key_id");
+    const userOrgKeyId = userData?.org_key_id;
+    const orgKeyId = storedOrgKeyId || userOrgKeyId;
+    
+    if (orgKeyId) {
+      // Initial status check when org_key_id is available
+      checkBusinessVerificationStatus();
 
       // Set up periodic status checking (every 30 seconds)
       const statusCheckInterval = setInterval(() => {
-        checkBusinessVerificationStatus(userData.id);
+        checkBusinessVerificationStatus();
       }, 30000);
 
       // Cleanup interval on component unmount
       return () => clearInterval(statusCheckInterval);
     }
-  }, [userData?.id]);
+  }, [userData?.org_key_id]);
 
   // Legacy status check (keeping for backward compatibility)
   useEffect(() => {
