@@ -27,7 +27,7 @@ const ApprovedStatus = ({ verificationData }) => {
               <CheckCircle className="w-8 h-8 text-green-400" />
             </div>
             <h1 className="text-2xl font-semibold text-white mb-2">
-              Business Verified Successfully
+              Organization Verified Successfully
             </h1>
             <p className="text-gray-300 max-w-2xl mx-auto">
               {verificationData?.data?.verification_status }

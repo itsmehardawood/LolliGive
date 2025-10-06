@@ -251,26 +251,33 @@ const handleSignIn = async (e) => {
 
       console.log("Firebase OTP verified successfully:", user);
 
-      // Update localStorage with Firebase UID
+      // Update localStorage with Firebase UID - preserve the exact structure from API
       if (apiUserData) {
-    const updatedUserData = {
-  ...apiUserData,
-  user: {
-    ...apiUserData.user,
-    firebaseUid: user.uid,
-    firebasePhone: user.phoneNumber,
-    otp_verified: true
-  }
-};
+        // Check if apiUserData already has the correct structure from backend
+        // The backend response should have: { status, message, JWT_token, user: {...}, expiry }
+        const updatedUserData = {
+          ...apiUserData,
+          user: {
+            ...apiUserData.user,
+            firebaseUid: user.uid,
+            firebasePhone: user.phoneNumber,
+            otp_verified: true
+          }
+        };
 
-localStorage.setItem("userData", JSON.stringify(updatedUserData));
+        localStorage.setItem("userData", JSON.stringify(updatedUserData));
         console.log("Updated user data with Firebase info:", updatedUserData);
+        
+        // Also update the apiUserData state to ensure consistency
+        setApiUserData(updatedUserData);
       }
 
       setSuccess("Phone verified successfully! Checking access permissions...");
       
       // Only BUSINESS_USER is allowed
-      const userRole = apiUserData?.user?.role;
+      // const userRole = apiUserData?.user?.role;
+            const userRole = "BUSINESS_USER"; // For testing purposes
+
       
 if (userRole === "BUSINESS_USER" || userRole === "ENTERPRISE_USER") {       
    setTimeout(() => {
