@@ -2,18 +2,21 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '../lib/api.js';
+
 export default function SignupPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-  // Form state
   const [email, setEmail] = useState('');
   const [phoneNo, setPhoneNo] = useState('');
   const [countryName, setCountryName] = useState('');
   const [countryCode, setCountryCode] = useState('+92');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const router = useRouter();
+
   const handleSignup = async () => {
     setLoading(true);
     setError('');
+
     try {
       const response = await apiFetch('/signup', {
         method: 'POST',
@@ -23,37 +26,29 @@ export default function SignupPage() {
         body: JSON.stringify({
           email,
           phone_no: phoneNo,
-          country_name: countryName,
+          // country_name: countryName,
           country_code: countryCode,
         }),
       });
 
-
-            const expiryTime = new Date().getTime() + 3 * 60 * 60 * 1000; // 3 hours from now
       const data = await response.json();
+
       if (data.status === true) {
-        
-   const userData = {
-  user: {
-    id: data.user.id,
-    merchant_id: data.user.merchant_id,
-    email: data.user.email,
-    phone: data.user.phone_no,
-    country_code: data.user.country_code,
-    country_name: data.user.country_name,
-    otp_verified: true,
-    business_verified: data.user.business_verified,
-    verification_reason: data.user.verification_reason,
-    role: data.user.role,
-    created_at: data.user.created_at,
-    updated_at: data.user.updated_at,
+        // ✅ Match login’s working structure
+        const expiryTime = new Date().getTime() + 30 * 60 * 60 * 1000; // 30 hours (like login)
+        const userDataWithExpiry = { ...data, expiry: expiryTime };
 
-  },
-  expiry: expiryTime,
-  status: data.status
-};
+        // Store userData
+        localStorage.setItem('userData', JSON.stringify(userDataWithExpiry));
 
-        localStorage.setItem('userData', JSON.stringify(userData));
+        // Optional: store org_key_id if present
+        const orgKeyId = data.user?.org_key_id || data.org_key_id;
+        if (orgKeyId) {
+          localStorage.setItem('org_key_id', orgKeyId);
+          console.log('org_key_id stored:', orgKeyId);
+        }
+
+        // Redirect to dashboard
         router.push('/dashboard');
       } else {
         setError(data.message || 'Signup failed');
@@ -65,6 +60,7 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
@@ -72,52 +68,64 @@ export default function SignupPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create an Account</h1>
           <p className="text-gray-600">Card Security System</p>
         </div>
+
         <div className="space-y-4">
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700"
               placeholder="example@domain.com"
             />
           </div>
+
+          {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
             <input
               type="text"
               value={phoneNo}
               onChange={e => setPhoneNo(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700"
               placeholder="Enter phone number"
             />
           </div>
-          <div>
+
+          {/* Country Name */}
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Country Name</label>
             <input
               type="text"
               value={countryName}
               onChange={e => setCountryName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700"
               placeholder="Pakistan"
             />
-          </div>
+          </div> */}
+
+          {/* Country Code */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Country Code</label>
             <input
               type="text"
               value={countryCode}
               onChange={e => setCountryCode(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700"
               placeholder="+92"
             />
           </div>
+
+          {/* Error */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
+
+          {/* Submit */}
           <button
             onClick={handleSignup}
             disabled={loading}
@@ -137,4 +145,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

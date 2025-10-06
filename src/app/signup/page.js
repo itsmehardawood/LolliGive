@@ -22,11 +22,12 @@ export default function SignUpPage() {
   const [Success, setSuccess] = useState("");
   const [otpError, setOtpError] = useState("");
   const [confirmationResult, setConfirmationResult] = useState(null);
+  const [apiUserData, setApiUserData] = useState(null);
   const [formData, setFormData] = useState({
     email: "",
     phone: "",
     countryCode: "+1",
-    country_name: "United States",
+    // country_name: "United States",
   });
 
   const options = countryCodes.map((country) => ({
@@ -176,8 +177,8 @@ useEffect(() => {
     }
   };
 
-  // UPDATED: Now checks user existence before sending Firebase OTP
-  const handleSubmit = async (e) => {
+  // UPDATED: Check user existence and send Firebase OTP first. Create account AFTER OTP verification.
+  const handleSubmitSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -189,7 +190,6 @@ useEffect(() => {
       const userExistsResult = await checkUserExists(formData.email, formData.phone);
       
       if (userExistsResult.exists) {
-        // Handle different scenarios based on which field(s) already exist
         let errorMessage = "";
         
         switch (userExistsResult.field) {
@@ -211,28 +211,29 @@ useEffect(() => {
         return;
       }
 
-      // Step 2: If user doesn't exist, proceed with Firebase OTP
-      console.log("User doesn't exist, sending Firebase OTP...");
+      // Step 2: Send Firebase OTP (Don't create account yet - wait for OTP verification)
       const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
-      const appVerifier = window.recaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        fullPhoneNumber,
-        appVerifier
-      );
 
-      // Store confirmation result for OTP verification
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(fullPhoneNumber)) {
+        throw new Error(`Invalid phone number format: ${fullPhoneNumber}`);
+      }
+
+      if (!window.recaptchaVerifier) {
+        throw new Error("reCAPTCHA verifier not initialized");
+      }
+
+      const appVerifier = window.recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
+
       setConfirmationResult(confirmation);
       setShowOtpForm(true);
-      setSuccess(
-        "Verification code sent to your phone. Please verify to complete signup."
-      );
-
+      setSuccess("Verification code sent to your phone. Please verify to complete signup.");
       console.log("Firebase OTP sent successfully");
-    } catch (err) {
-      console.error("Error during signup process:", err);
 
-      // Handle Firebase-specific errors
+    } catch (err) {
+      console.error("Error in signup process:", err);
+
       if (err.code === "auth/invalid-phone-number") {
         setError("Invalid phone number format. Please check your number.");
       } else if (err.code === "auth/too-many-requests") {
@@ -240,16 +241,14 @@ useEffect(() => {
       } else if (err.code === "auth/quota-exceeded") {
         setError("SMS quota exceeded. Please try again later.");
       } else {
-        setError(
-          err.message || "Failed to send verification code. Please try again."
-        );
+        setError(err.message || "Signup failed. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // FIXED: Now calls signup API only AFTER OTP verification is successful
+  // FIXED: Now only verifies OTP with Firebase and updates stored data
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     if (!confirmationResult) {
@@ -267,71 +266,60 @@ useEffect(() => {
 
       console.log("Firebase OTP verified successfully:", user);
 
-      // Step 2: Now create account via API since OTP is verified
+      // Step 2: NOW create account via API since OTP is verified
       const apiData = {
         email: formData.email,
         country_code: formData.countryCode,
-        phone_no: `${formData.phone}`,
-        country_name: formData.country_name,
+        phone_no: `${formData.phone}`
       };
 
-      const response = await apiFetch(
-        "/signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(apiData),
-        }
-      );
+      const response = await apiFetch("/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(apiData),
+      });
 
       const data = await response.json();
 
       if (!response.ok || !data.status) {
-        // If API fails after OTP verification, we need to handle this carefully
+        // If API fails after OTP verification, show appropriate error
         console.error("API signup failed after OTP verification:", data);
         throw new Error(
           data.message || "Failed to create account. Please contact support."
         );
       }
 
-      // Step 3: Store user data in localStorage with both API and Firebase info
-      const userData = {
+      // Step 3: Store API response with expiry and Firebase info
+      const expiryTime = new Date().getTime() + 3 * 60 * 60 * 1000; // 3 hours in ms
+      
+      const userDataWithExpiry = {
+        ...data,
+        expiry: expiryTime,
         user: {
-          id: data.user.id,
-          merchant_id: data.user.merchant_id,
-          org_key_id: data.user.org_key_id,
-          email: data.user.email,
-          phone: data.user.phone_no,
-          country_code: data.user.country_code,
-          country_name: data.user.country_name,
-          otp_verified: true, // We know it's verified since we got here
-          business_verified: data.user.business_verified,
-          organization_verified: data.user.organization_verified,
-          verification_reason: data.user.verification_reason,
-          role: data.user.role,
-          created_at: data.user.created_at,
-          updated_at: data.user.updated_at,
+          ...data.user,
           firebaseUid: user.uid,
           firebasePhone: user.phoneNumber,
-        },
+          otp_verified: true
+        }
       };
 
-      localStorage.setItem("userData", JSON.stringify(userData));
+      localStorage.setItem("userData", JSON.stringify(userDataWithExpiry));
       
-      // Store org_key_id separately for easy access
-      if (data.user.org_key_id) {
-        localStorage.setItem("org_key_id", data.user.org_key_id);
-        console.log("org_key_id stored:", data.user.org_key_id);
+      // Store org_key_id separately for easy access - handle nested structure
+      const orgKeyId = data.user?.org_key_id || data.org_key_id;
+      if (orgKeyId) {
+        localStorage.setItem("org_key_id", orgKeyId);
+        console.log("org_key_id stored:", orgKeyId);
       }
       
-      console.log("Account created and verified successfully:", userData);
+      setApiUserData(userDataWithExpiry);
 
-      setSuccess(
-        "Account created and verified successfully! Redirecting to dashboard..."
-      );
+      console.log("Account created and verified successfully:", userDataWithExpiry);
 
+      setSuccess("Account created and verified successfully! Redirecting to dashboard...");
+      
       // Redirect to dashboard
       setTimeout(() => {
         router.push("/dashboard");
@@ -343,15 +331,11 @@ useEffect(() => {
         setOtpError("Invalid verification code. Please check and try again.");
       } else if (err.code === "auth/code-expired") {
         setOtpError("Verification code has expired. Please request a new one.");
-      } else {
+      } else if (err.message.includes("Failed to create account")) {
         // Handle API errors that occur after successful OTP verification
-        if (err.message.includes("Failed to create account")) {
-          setOtpError(
-            "Phone verified but account creation failed. Please contact support."
-          );
-        } else {
-          setOtpError("Verification failed. Please try again.");
-        }
+        setOtpError("Phone verified but account creation failed. Please contact support.");
+      } else {
+        setOtpError("Verification failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -363,20 +347,27 @@ useEffect(() => {
     setOtpError("");
     setSuccess("");
 
-    // Format phone number for Firebase (E.164 format)
-    const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
-
     try {
+      const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
+      console.log("Resending Firebase OTP to:", fullPhoneNumber);
+
+      // Validate phone number format
+      const phoneRegex = /^\+[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(fullPhoneNumber)) {
+        throw new Error(`Invalid phone number format: ${fullPhoneNumber}`);
+      }
+
+      // Ensure reCAPTCHA is ready
+      if (!window.recaptchaVerifier) {
+        throw new Error("reCAPTCHA verifier not initialized");
+      }
+
       const appVerifier = window.recaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        fullPhoneNumber,
-        appVerifier
-      );
+      const confirmation = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
 
       setConfirmationResult(confirmation);
       setSuccess("Verification code resent successfully!");
-
+      
       console.log("Firebase OTP resent successfully");
     } catch (err) {
       console.error("Resend OTP error:", err);
@@ -486,7 +477,7 @@ useEffect(() => {
                     </div>
                   )}
 
-                  <form onSubmit={handleSubmit} className="space-y-5">
+                  <form onSubmit={handleSubmitSignup} className="space-y-5">
                     {/* Email Input */}
                     <div>
                       <label
