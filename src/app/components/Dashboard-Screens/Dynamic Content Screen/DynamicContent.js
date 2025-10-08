@@ -92,7 +92,7 @@ export default function OrganizationRegistration() {
         return;
       }
 
-      const response = await fetch('http://54.167.124.195:8002/api/companies/show', {
+      const response = await fetch('https://api.lolligive.com/api/companies/show', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

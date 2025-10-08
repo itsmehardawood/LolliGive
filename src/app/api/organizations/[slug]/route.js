@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 // Function to fetch organization data from external API
 async function fetchOrganizationFromAPI(alias) {
   try {
-    const response = await fetch('http://54.167.124.195:8002/api/companies/showAlias', {
+    const response = await fetch('https://api.lolligive.com/api/companies/showAlias', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
