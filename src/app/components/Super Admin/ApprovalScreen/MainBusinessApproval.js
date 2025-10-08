@@ -312,7 +312,7 @@ const BusinessApprovalSectionUpdated = () => {
           <div className="flex-1 min-w-0">
             <h2 className="text-lg sm:text-xl font-bold mb-1 flex items-center">
               <ShieldCheck className="w-5 h-5 mr-2 transition-transform duration-200 hover:scale-110" />
-              Business Management
+              Organization Management
             </h2>
             <p className="text-gray-300 text-xs">Manage verification requests</p>
           </div>

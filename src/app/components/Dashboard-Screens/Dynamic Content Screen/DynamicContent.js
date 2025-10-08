@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import OrganizationDisplay from './OrganizationDisplay';
+import PendingProfileStatus from './PendingProfileStatus';
 
 const InputField = ({ label, name, type = 'text', required = false, placeholder, className = '', children, formData, handleInputChange, errors, ...props }) => (
   <div className="space-y-2">
@@ -45,6 +46,7 @@ export default function OrganizationRegistration() {
   const [existingData, setExistingData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [userProfileStatus, setUserProfileStatus] = useState('loading'); // New state for profile status
   const [formData, setFormData] = useState({
     // Basic Info
     name: '',
@@ -74,6 +76,59 @@ export default function OrganizationRegistration() {
   const stepTitles = ['Basic Info', 'Content & Media', 'About Us', 'Contact & Purpose'];
   const totalSteps = 4;
 
+  // Function to get user's profile status from localStorage
+  const getUserProfileStatus = () => {
+    try {
+      const userData = localStorage.getItem('userData');
+      if (!userData) return 'unauthenticated';
+
+      const parsedData = JSON.parse(userData);
+      const userObj = parsedData.user || parsedData;
+      
+      // Check business_verified or organization_verified status
+      const businessVerified = userObj.business_verified || userObj.organization_verified;
+      
+      if (!businessVerified || businessVerified === '' || businessVerified === null) {
+        return 'incomplete-profile';
+      }
+
+      // Map status values to our internal status system
+      switch (businessVerified.toString().toUpperCase()) {
+        case 'PENDING':
+        case '0':
+          return 'pending';
+        case 'APPROVED':
+        case 'VERIFIED':
+        case 'ACTIVE':
+        case '1':
+          return 'approved';
+        case 'REJECTED':
+        case 'DECLINED':
+          return 'rejected';
+        case 'INCOMPLETE PROFILE':
+        case 'INCOMPLETE_PROFILE':
+        case 'INCOMPLETE':
+        case '2':
+          return 'incomplete-profile';
+        default:
+          return 'incomplete-profile';
+      }
+    } catch (error) {
+      console.error('Error checking user profile status:', error);
+      return 'error';
+    }
+  };
+
+  // Function to handle contact support
+  const handleContactSupport = () => {
+    // You can implement this to open a contact form, redirect to support page, or open email client
+    const supportEmail = 'support@lolligive.com';
+    const subject = encodeURIComponent('Profile Review Support Request');
+    const body = encodeURIComponent(`Hello,\n\nI need assistance with my pending profile review.\n\nUser ID: ${localStorage.getItem('org_key_id') || 'Not available'}\n\nThank you.`);
+    
+    window.location.href = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
+  };
+
   // Check for existing organization data on component mount
   useEffect(() => {
     checkExistingData();
@@ -82,6 +137,21 @@ export default function OrganizationRegistration() {
   const checkExistingData = async () => {
     try {
       setIsLoading(true);
+      
+      // First, check user's profile status
+      const profileStatus = getUserProfileStatus();
+      setUserProfileStatus(profileStatus);
+      
+      // If user profile is pending, don't proceed with organization data check
+      if (profileStatus === 'pending') {
+        setIsLoading(false);
+        return;
+      }
+      
+      // If user profile is not approved, show message but allow them to continue
+      if (profileStatus !== 'approved') {
+        console.log(`Profile status is ${profileStatus}, but allowing access to organization setup`);
+      }
       
       // Get org_key_id from localStorage
       const orgKeyId = localStorage.getItem('org_key_id');
@@ -409,6 +479,11 @@ export default function OrganizationRegistration() {
     );
   }
 
+  // Show pending status if user's business profile is pending approval
+  if (userProfileStatus === 'pending') {
+    return <PendingProfileStatus onContactSupport={handleContactSupport} />;
+  }
+
   // If we have existing data and not showing the registration form, display the data
   if (existingData && !showRegistrationForm) {
     return <OrganizationDisplay data={existingData} onEdit={handleEditOrganization} />;
@@ -430,6 +505,28 @@ export default function OrganizationRegistration() {
           <p className="text-gray-400">
             {existingData ? 'Update your organization information' : 'Join our community and make a difference'}
           </p>
+          
+          {/* Status Warning for non-approved users */}
+          {userProfileStatus !== 'approved' && userProfileStatus !== 'loading' && (
+            <div className="mt-6 max-w-md mx-auto">
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <svg className="w-6 h-6 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="text-left">
+                    <p className="text-yellow-300 font-semibold text-sm">Profile Status: {userProfileStatus.replace('-', ' ').toUpperCase()}</p>
+                    <p className="text-yellow-200 text-xs mt-1">
+                      {userProfileStatus === 'incomplete-profile' && 'Complete your business profile setup first for full access to features.'}
+                      {userProfileStatus === 'rejected' && 'Your profile was not approved. Contact support for assistance.'}
+                      {userProfileStatus === 'error' && 'Unable to verify profile status. Contact support if issues persist.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {existingData && (
             <button
               onClick={() => setShowRegistrationForm(false)}

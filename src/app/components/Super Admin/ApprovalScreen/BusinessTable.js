@@ -56,7 +56,7 @@ const BusinessTable = ({
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                 <tr>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider min-w-[200px]">
-                    Company Details
+                    Organization Details
                   </th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider min-w-[180px]">
                     Contact
