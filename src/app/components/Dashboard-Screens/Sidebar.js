@@ -56,17 +56,18 @@ const Sidebar = ({
     },
         { id: "mypage", label: "My Page", icon: <Globe className="w-5 h-5" /> },
 
+          {
+      id: "transactions",
+      label: "Transactions",
+      icon: <HistoryIcon className="w-5 h-5" />,
+    },
 
     {
       id: "reports",
       label: "Reports",
       icon: <ClipboardList className="w-5 h-5" />,
     },
-    {
-      id: "transactions",
-      label: "Transactions",
-      icon: <HistoryIcon className="w-5 h-5" />,
-    },
+  
 
 
     {

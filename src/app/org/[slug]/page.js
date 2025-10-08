@@ -8,6 +8,7 @@ export default function OrganizationPage() {
   const params = useParams();
   const slug = params.slug;
   const [organizationData, setOrganizationData] = useState(null);
+  const [orgId, setOrgId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,6 +23,9 @@ export default function OrganizationPage() {
       }
       
       const apiData = await response.json();
+      
+      // Store orgId for donation functionality
+      setOrgId(apiData.orgId);
       
       // Map API response to component data structure
       const mappedData = {
@@ -216,6 +220,7 @@ export default function OrganizationPage() {
     <OrganizationLanding 
       organizationData={organizationData} 
       organizationSlug={slug}
+      orgId={orgId}
     />
   );
 }

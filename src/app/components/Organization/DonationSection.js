@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Image from "next/image";
 
-export default function DonationSection({ donationData, organizationSlug }) {
+export default function DonationSection({ donationData, organizationSlug, orgId }) {
   const {
     title = "Support Our Mission",
     subtitle = "Your generous donation helps us continue our important work in the community.",
@@ -55,6 +55,9 @@ export default function DonationSection({ donationData, organizationSlug }) {
     paymentMethod: ''
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const handleAmountSelect = (amount) => {
     setFormData(prev => ({
@@ -116,15 +119,64 @@ export default function DonationSection({ donationData, organizationSlug }) {
     }));
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     if (!formData.paymentMethod) {
       setErrors({ paymentMethod: 'Please select a payment method' });
       return;
     }
 
-    // Here you would integrate with your payment processor
-    console.log('Processing donation:', formData);
-    alert('Donation processing... (This would integrate with your payment gateway)');
+    if (!orgId) {
+      setErrors({ general: 'Organization ID not found. Please try again.' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+    setSubmitStatus(null);
+    setSubmitMessage('');
+
+    try {
+      const payload = {
+        org_key_id: orgId,
+        amount: parseFloat(formData.amount),
+        name: formData.name,
+        payment_method: formData.paymentMethod,
+        purpose_reason: formData.purpose_reason,
+        comment: formData.comment || ''
+      };
+
+      console.log('Submitting donation:', payload);
+
+      const response = await fetch('https://api.lolligive.com/api/transaction/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      // Success
+      setSubmitStatus('success');
+      setSubmitMessage('Thank you for your donation! Your transaction has been processed successfully.');
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        resetForm();
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error processing donation:', error);
+      setSubmitStatus('error');
+      setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -138,7 +190,13 @@ export default function DonationSection({ donationData, organizationSlug }) {
       paymentMethod: ''
     });
     setErrors({});
+    setIsSubmitting(false);
+    setSubmitStatus(null);
+    setSubmitMessage('');
   };
+
+  // Debug: log orgId when component renders
+  console.log('DonationSection orgId:', orgId);
 
   return (
 
@@ -338,18 +396,55 @@ export default function DonationSection({ donationData, organizationSlug }) {
               )}
             </div>
 
+            {/* Status Messages */}
+            {submitStatus && (
+              <div className={`mb-6 p-4 rounded-lg ${
+                submitStatus === 'success' 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-red-600 text-white'
+              }`}>
+                <p className="text-sm">{submitMessage}</p>
+              </div>
+            )}
+
+            {/* General Error Messages */}
+            {errors.general && (
+              <div className="mb-6 p-4 rounded-lg bg-red-600 text-white">
+                <p className="text-sm">{errors.general}</p>
+              </div>
+            )}
+
             <div className="flex space-x-3">
               <button
                 onClick={() => setStep(1)}
-                className="flex-1 bg-white text-black py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
+                disabled={isSubmitting}
+                className={`flex-1 py-3 px-6 rounded-lg font-semibold transition ${
+                  isSubmitting 
+                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                    : 'bg-white text-black hover:bg-gray-200'
+                }`}
               >
                 Back
               </button>
               <button
                 onClick={handleFinalSubmit}
-                className="flex-1 bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-500 transition"
+                disabled={isSubmitting || submitStatus === 'success'}
+                className={`flex-1 py-3 px-6 rounded-lg font-semibold transition ${
+                  isSubmitting || submitStatus === 'success'
+                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                    : 'bg-red-700 text-white hover:bg-red-500'
+                }`}
               >
-                Complete Donation
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </div>
+                ) : submitStatus === 'success' ? (
+                  'Donation Completed ✓'
+                ) : (
+                  'Complete Donation'
+                )}
               </button>
             </div>
           </div>

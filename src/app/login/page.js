@@ -272,7 +272,7 @@ const handleSignIn = async (e) => {
         setApiUserData(updatedUserData);
       }
 
-      setSuccess("Phone verified successfully! Checking access permissions...");
+      setSuccess("Phone verified successfully! Redirecting...");
       
       // Only BUSINESS_USER is allowed
       // const userRole = apiUserData?.user?.role;

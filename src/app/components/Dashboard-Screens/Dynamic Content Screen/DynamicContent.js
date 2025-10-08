@@ -92,7 +92,7 @@ export default function OrganizationRegistration() {
         return;
       }
 
-      const response = await fetch('http://54.167.124.195:8002/api/companies/show', {
+      const response = await fetch('https://api.lolligive.com/api/companies/show', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -343,9 +343,9 @@ export default function OrganizationRegistration() {
       // Determine if this is an update or create operation
       const isUpdate = existingData !== null;
       const apiUrl = isUpdate 
-        ? 'http://54.167.124.195:8002/api/companies/update'
+        ? 'http://54.167.124.195:8002/api/companies'
         : 'http://54.167.124.195:8002/api/companies';
-      
+
       const method = isUpdate ? 'PUT' : 'POST';
 
       const response = await fetch(apiUrl, {

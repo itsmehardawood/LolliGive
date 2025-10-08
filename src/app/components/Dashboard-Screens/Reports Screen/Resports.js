@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -13,45 +13,112 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Example: transactions data
-const transactions = [
-  { tid: "TXN1001", name: "John Doe", amount: 250.75, time: "2025-09-18 14:32", paymentMethod: "Credit Card" },
-  { tid: "TXN1002", name: "Jane Smith", amount: 120.0, time: "2025-09-19 15:10", paymentMethod: "PayPal" },
-  { tid: "TXN1003", name: "Ali Khan", amount: 560.25, time: "2025-09-20 16:45", paymentMethod: "Bank Transfer" },
-  { tid: "TXN1004", name: "Maria Lee", amount: 75.5, time: "2025-09-20 17:20", paymentMethod: "Cash" },
-  { tid: "TXN1005", name: "Sophia Johnson", amount: 310.4, time: "2025-09-21 18:05", paymentMethod: "Debit Card" },
-  { tid: "TXN1006", name: "David Brown", amount: 999.99, time: "2025-09-22 18:45", paymentMethod: "Stripe" },
-  { tid: "TXN1007", name: "Emily Davis", amount: 45.0, time: "2025-09-22 19:12", paymentMethod: "Google Pay" },
-  { tid: "TXN1008", name: "Michael Wilson", amount: 780.65, time: "2025-09-23 20:30", paymentMethod: "Apple Pay" },
-];
-
 export default function TransactionAnalytics() {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch transactions from API
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get org_key_id from localStorage
+      const orgKeyId = localStorage.getItem('org_key_id');
+      
+      if (!orgKeyId) {
+        throw new Error('Organization key not found');
+      }
+
+      const response = await fetch('https://api.lolligive.com/api/transaction/show', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          org_key_id: orgKeyId
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to fetch transactions');
+      }
+
+      if (result.success && result.data) {
+        // Transform API data to match component expectations
+        const transformedData = result.data.map(t => ({
+          tid: t.tid,
+          name: t.name,
+          amount: parseFloat(t.amount_received), // Use amount_received for analytics
+          time: t.created_at,
+          paymentMethod: t.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+        }));
+        setTransactions(transformedData);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching transactions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch transactions on component mount
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
   // Prepare daily aggregated data
   const dailyData = useMemo(() => {
+    if (!transactions.length) return [];
+    
     const grouped = {};
     transactions.forEach((t) => {
-      const date = t.time.split(" ")[0]; // yyyy-mm-dd
+      // Handle both formats: "2025-10-08T11:16:30.000000Z" and "2025-09-18 14:32"
+      const date = t.time.includes('T') 
+        ? t.time.split('T')[0] // Extract date from ISO format
+        : t.time.split(' ')[0]; // Extract date from space-separated format
+      
       if (!grouped[date]) grouped[date] = { date, total: 0, count: 0 };
       grouped[date].total += t.amount;
       grouped[date].count += 1;
     });
-    return Object.values(grouped);
-  }, []);
+    
+    // Sort by date
+    return Object.values(grouped).sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [transactions]);
 
   // Prepare weekly data
   const weeklyData = useMemo(() => {
+    if (!transactions.length) return [];
+    
     const grouped = {};
     transactions.forEach((t) => {
-      const d = new Date(t.time);
+      // Handle both date formats
+      const dateStr = t.time.includes('T') 
+        ? t.time.split('T')[0] 
+        : t.time.split(' ')[0];
+      
+      const d = new Date(dateStr);
       const firstDayOfYear = new Date(d.getFullYear(), 0, 1);
       const pastDays = (d - firstDayOfYear) / 86400000;
       const week = Math.ceil((pastDays + firstDayOfYear.getDay() + 1) / 7);
       const key = `Week ${week}`;
+      
       if (!grouped[key]) grouped[key] = { week: key, total: 0 };
       grouped[key].total += t.amount;
     });
-    return Object.values(grouped);
-  }, []);
+    
+    return Object.values(grouped).sort((a, b) => {
+      const weekA = parseInt(a.week.split(' ')[1]);
+      const weekB = parseInt(b.week.split(' ')[1]);
+      return weekA - weekB;
+    });
+  }, [transactions]);
 
   return (
     <section className="p-8 text-white max-w-6xl mx-auto">
@@ -64,58 +131,91 @@ export default function TransactionAnalytics() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Daily Amounts (Line Chart) */}
-        <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Daily Amount Received</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="date" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
-                labelStyle={{ color: "#E5E7EB" }}
-              />
-              <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading analytics...</div>
         </div>
+      )}
 
-        {/* Daily Transaction Count */}
-        <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Transactions Count per Day</h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={dailyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="date" stroke="#9CA3AF" />
-              <YAxis stroke="#9CA3AF" />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
-                labelStyle={{ color: "#E5E7EB" }}
-              />
-              <Bar dataKey="count" fill="#10B981" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-900/50 border border-red-600 text-red-300 p-4 rounded-lg mb-6">
+          <p className="font-semibold">Error loading analytics:</p>
+          <p>{error}</p>
+          <button 
+            onClick={fetchTransactions}
+            className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white transition"
+          >
+            Retry
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Weekly Summary */}
-      <div className="mt-8 bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Weekly Summary</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={weeklyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="week" stroke="#9CA3AF" />
-            <YAxis stroke="#9CA3AF" />
-            <Tooltip
-              contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
-              labelStyle={{ color: "#E5E7EB" }}
-            />
-            <Bar dataKey="total" fill="#F59E0B" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {/* No Data State */}
+      {!loading && !error && transactions.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-xl text-gray-400">No transaction data available for analytics</p>
+        </div>
+      )}
+
+      {/* Charts - only show when not loading and no error */}
+      {!loading && !error && transactions.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Daily Amounts (Line Chart) */}
+            <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Daily Amount Received</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="date" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
+                    labelStyle={{ color: "#E5E7EB" }}
+                  />
+                  <Line type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Daily Transaction Count */}
+            <div className="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Transactions Count per Day</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="date" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
+                    labelStyle={{ color: "#E5E7EB" }}
+                  />
+                  <Bar dataKey="count" fill="#10B981" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Weekly Summary */}
+          <div className="mt-8 bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-md">
+            <h3 className="text-lg font-semibold mb-4">Weekly Summary</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={weeklyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="week" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#1F2937", border: "none" }}
+                  labelStyle={{ color: "#E5E7EB" }}
+                />
+                <Bar dataKey="total" fill="#F59E0B" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </section>
   );
 }

@@ -389,7 +389,7 @@ function DashboardContent() {
 
       // Make API call
       const response = await fetch(
-        "http://54.167.124.195:8002/api/organization-profile",
+        "https://api.lolligive.com/api/organization-profile",
         {
           method: "POST",
           headers: headers,

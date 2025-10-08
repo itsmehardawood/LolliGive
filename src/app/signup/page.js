@@ -318,7 +318,7 @@ useEffect(() => {
 
       console.log("Account created and verified successfully:", userDataWithExpiry);
 
-      setSuccess("Account created and verified successfully! Checking access permissions...");
+      setSuccess("Account created and verified successfully! Redirecting to dashboard...");
       
       // Only BUSINESS_USER and ENTERPRISE_USER are allowed (same logic as login page)
       // const userRole = data?.user?.role;
