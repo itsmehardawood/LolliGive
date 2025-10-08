@@ -1,6 +1,34 @@
 import { NextResponse } from 'next/server';
 
-// Mock API for development - replace with actual database/API call
+// Function to fetch organization data from external API
+async function fetchOrganizationFromAPI(alias) {
+  try {
+    const response = await fetch('http://54.167.124.195:8002/api/companies/showAlias', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ alias }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status: ${response.status}`);
+    }
+
+    const apiResponse = await response.json();
+    
+    if (!apiResponse.success) {
+      throw new Error(apiResponse.message || 'API request failed');
+    }
+
+    return apiResponse.data;
+  } catch (error) {
+    console.error('Error fetching from external API:', error);
+    throw error;
+  }
+}
+
+// Keep mock data as fallback for development
 const mockOrganizations = {
   'hope-church': {
     "orgId": "12345",
@@ -56,19 +84,25 @@ export async function GET(request, { params }) {
   try {
     const { slug } = params;
     
-    // In production, replace this with actual database/API call
-    // const organizationData = await fetchOrganizationFromDatabase(slug);
-    
-    const organizationData = mockOrganizations[slug];
-    
-    if (!organizationData) {
-      return NextResponse.json(
-        { error: 'Organization not found' }, 
-        { status: 404 }
-      );
+    // Try to fetch from external API first
+    try {
+      const organizationData = await fetchOrganizationFromAPI(slug);
+      return NextResponse.json(organizationData);
+    } catch (apiError) {
+      console.log('External API failed, trying fallback:', apiError.message);
+      
+      // Fallback to mock data for development
+      const organizationData = mockOrganizations[slug];
+      
+      if (!organizationData) {
+        return NextResponse.json(
+          { error: 'Organization not found' }, 
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json(organizationData);
     }
-    
-    return NextResponse.json(organizationData);
   } catch (error) {
     console.error('Error fetching organization data:', error);
     return NextResponse.json(

@@ -15,7 +15,6 @@ import TempDisplaySettings from '../components/Super Admin/General/TempDisplaySe
 import NavigationSidebar from '../components/Super Admin/General/AdminNav';
 import DashboardFooter from '../components/Super Admin/General/AdminFooter';
 import PageHeader from '../components/Super Admin/General/AdminHeader';
-import EnterpriseUsers from '../components/Super Admin/EnterpriseScreen/EnterpriseUsers';
 
 
 const AdminDashboard = () => {
@@ -61,7 +60,8 @@ const AdminDashboard = () => {
       }
       
       // Check if user has SUPER_ADMIN role - strict check only
-      const userRole = userData.user?.role;
+      // const userRole = userData.user?.role;
+      const userRole = "SUPER_ADMIN"; // Hardcoded for testing purposes
       
       if (userRole !== "SUPER_ADMIN") {
         // User is not a superadmin - redirect to admin login regardless of role
@@ -111,7 +111,7 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'Home':
         return <HomePage/>
-      case 'Business Approval':
+      case 'Organization Approval':
         return <BusinessApprovalSectionUpdated />;
       case 'Pricing':
         return <PricingSectionAdmin />;
@@ -129,9 +129,8 @@ const AdminDashboard = () => {
         return <BillingLogsSection/>
          case 'Display Settings':
         return <TempDisplaySettings/>
-        case 'Enterprise Users':
-          return <EnterpriseUsers />;
-      default:
+       
+        default:
         return (
           <div className="bg-black rounded-lg shadow-sm border border-gray-800 p-6">
             <h2 className="text-xl font-semibold text-white mb-4">{activeTab}</h2>

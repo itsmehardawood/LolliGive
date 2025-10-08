@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import OrganizationDisplay from './OrganizationDisplay';
 
 const InputField = ({ label, name, type = 'text', required = false, placeholder, className = '', children, formData, handleInputChange, errors, ...props }) => (
   <div className="space-y-2">
@@ -13,7 +14,7 @@ const InputField = ({ label, name, type = 'text', required = false, placeholder,
       <input
         type={type}
         name={name}
-        value={formData[name] ?? ''}
+        {...(type !== 'file' && { value: formData[name] ?? '' })}
         onChange={handleInputChange}
         required={required}
         placeholder={placeholder}
@@ -36,22 +37,26 @@ export default function OrganizationRegistration() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState({});
   const [logoPreview, setLogoPreview] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState(null);
   const [aboutUsImagePreview, setAboutUsImagePreview] = useState(null);
+  const [existingData, setExistingData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [formData, setFormData] = useState({
     // Basic Info
     name: '',
     alias: '',
-    logo: null,
-    mainImage: null,
+    logo: '',
+    mainImage: '',
     
     // Content
     welcomeText: '',
     testimonyText: '',
     aboutUsText: '',
-    aboutUsImage: null,
+    aboutUsImage: '',
     donationMessage: '',
     videoUrl: '',
     
@@ -69,6 +74,88 @@ export default function OrganizationRegistration() {
   const stepTitles = ['Basic Info', 'Content & Media', 'About Us', 'Contact & Purpose'];
   const totalSteps = 4;
 
+  // Check for existing organization data on component mount
+  useEffect(() => {
+    checkExistingData();
+  }, []);
+
+  const checkExistingData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get org_key_id from localStorage
+      const orgKeyId = localStorage.getItem('org_key_id');
+      
+      if (!orgKeyId) {
+        setShowRegistrationForm(true);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch('http://54.167.124.195:8002/api/companies/show', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          org_key_id: orgKeyId
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          console.log('✅ Existing organization data found:', result.data);
+          setExistingData(result.data);
+          setShowRegistrationForm(false);
+        } else {
+          console.log('❌ No organization data found, showing registration form');
+          setShowRegistrationForm(true);
+        }
+      } else {
+        console.log('❌ Error fetching organization data, showing registration form');
+        setShowRegistrationForm(true);
+      }
+    } catch (error) {
+      console.error('Error checking existing data:', error);
+      setShowRegistrationForm(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditOrganization = () => {
+    // If we have existing data, populate the form with it
+    if (existingData) {
+      setFormData({
+        name: existingData.name || '',
+        alias: existingData.alias || '',
+        logo: existingData.logo || '',
+        mainImage: existingData.mainImage || '',
+        welcomeText: existingData.welcomeText || '',
+        testimonyText: existingData.testimonyText || '',
+        aboutUsText: existingData.aboutUsText || '',
+        aboutUsImage: existingData.aboutUsImage || '',
+        donationMessage: existingData.donationMessage || '',
+        videoUrl: existingData.videoUrl || '',
+        contactInfo: {
+          address: existingData.contactInfo?.[0]?.address || '',
+          phone: existingData.contactInfo?.[0]?.phone || '',
+          email: existingData.contactInfo?.[0]?.email || ''
+        },
+        purpose_reason: existingData.purpose_reason || ['']
+      });
+
+      // Set image previews
+      if (existingData.logo) setLogoPreview(existingData.logo);
+      if (existingData.mainImage) setMainImagePreview(existingData.mainImage);
+      if (existingData.aboutUsImage) setAboutUsImagePreview(existingData.aboutUsImage);
+    }
+    
+    setShowRegistrationForm(true);
+  };
+
   const validateStep = (currentStep) => {
     const newErrors = {};
     
@@ -79,8 +166,10 @@ export default function OrganizationRegistration() {
         if (formData.welcomeText.length < 30) {
           newErrors.welcomeText = 'Welcome text should be at least 30 characters';
         }
-        if (!formData.logo) newErrors.logo = 'Logo is required';
-        if (!formData.mainImage) newErrors.mainImage = 'Main image is required';
+        if (!formData.logo.trim()) newErrors.logo = 'Logo URL is required';
+        if (formData.logo && !isValidUrl(formData.logo)) newErrors.logo = 'Please enter a valid logo URL';
+        if (!formData.mainImage.trim()) newErrors.mainImage = 'Main image URL is required';
+        if (formData.mainImage && !isValidUrl(formData.mainImage)) newErrors.mainImage = 'Please enter a valid main image URL';
         break;
       case 2:
         if (!formData.testimonyText.trim()) newErrors.testimonyText = 'Testimony text is required';
@@ -94,7 +183,8 @@ export default function OrganizationRegistration() {
         if (formData.aboutUsText.length < 50) {
           newErrors.aboutUsText = 'About us text should be at least 50 characters';
         }
-        if (!formData.aboutUsImage) newErrors.aboutUsImage = 'About us image is required';
+        if (!formData.aboutUsImage.trim()) newErrors.aboutUsImage = 'About us image URL is required';
+        if (formData.aboutUsImage && !isValidUrl(formData.aboutUsImage)) newErrors.aboutUsImage = 'Please enter a valid about us image URL';
         break;
       case 4: 
         if (!formData.contactInfo.address.trim()) newErrors.address = 'Address is required';
@@ -127,23 +217,14 @@ export default function OrganizationRegistration() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value } = e.target;
     
-    if (files && files[0]) {
-      const file = files[0];
-      setFormData(prev => ({ ...prev, [name]: file }));
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (name === 'logo') setLogoPreview(e.target.result);
-        if (name === 'mainImage') setMainImagePreview(e.target.result);
-        if (name === 'aboutUsImage') setAboutUsImagePreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Update image previews for URL inputs
+    if (name === 'logo' && value && isValidUrl(value)) setLogoPreview(value);
+    if (name === 'mainImage' && value && isValidUrl(value)) setMainImagePreview(value);
+    if (name === 'aboutUsImage' && value && isValidUrl(value)) setAboutUsImagePreview(value);
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -212,7 +293,15 @@ export default function OrganizationRegistration() {
         purpose_reason: formData.purpose_reason.filter(reason => reason.trim())
       };
 
+      // Get org_key_id from localStorage
+      const orgKeyId = localStorage.getItem('org_key_id');
+
       const submitData = new FormData();
+      
+      // Add org_key_id if it exists
+      if (orgKeyId) {
+        submitData.append('org_key_id', orgKeyId);
+      }
       
       // Add text fields
       submitData.append('name', cleanedData.name);
@@ -223,36 +312,107 @@ export default function OrganizationRegistration() {
       submitData.append('donationMessage', cleanedData.donationMessage);
       if (cleanedData.videoUrl) submitData.append('videoUrl', cleanedData.videoUrl);
       
-      // Add contact info
-      submitData.append('contactInfo', JSON.stringify(cleanedData.contactInfo));
+      // Add image URLs
+      submitData.append('logo', cleanedData.logo);
+      submitData.append('mainImage', cleanedData.mainImage);
+      submitData.append('aboutUsImage', cleanedData.aboutUsImage);
       
-      // Add purpose reasons
-      submitData.append('purpose_reason', JSON.stringify(cleanedData.purpose_reason));
+      // Add contact info in the format backend expects: contactInfo[0][field]
+      submitData.append('contactInfo[0][address]', cleanedData.contactInfo.address);
+      submitData.append('contactInfo[0][phone]', cleanedData.contactInfo.phone);
+      submitData.append('contactInfo[0][email]', cleanedData.contactInfo.email);
       
-      // Add files
-      if (cleanedData.logo) submitData.append('logo', cleanedData.logo);
-      if (cleanedData.mainImage) submitData.append('mainImage', cleanedData.mainImage);
-      if (cleanedData.aboutUsImage) submitData.append('aboutUsImage', cleanedData.aboutUsImage);
+      // Add purpose reasons in the format backend expects: purpose_reason[0], purpose_reason[1], etc.
+      cleanedData.purpose_reason.forEach((reason, index) => {
+        submitData.append(`purpose_reason[${index}]`, reason);
+      });
+      
 
-      const response = await fetch('/api/organizations/register', {
-        method: 'POST',
+
+      // Debug: Log all FormData entries
+      console.log('=== FormData being sent to API ===');
+      for (let [key, value] of submitData.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}:`, `[FILE] ${value.name} (${value.type}, ${value.size} bytes)`);
+        } else {
+          console.log(`${key}:`, value);
+        }
+      }
+      console.log('=== End FormData ===');
+
+      // Determine if this is an update or create operation
+      const isUpdate = existingData !== null;
+      const apiUrl = isUpdate 
+        ? 'http://54.167.124.195:8002/api/companies/update'
+        : 'http://54.167.124.195:8002/api/companies';
+      
+      const method = isUpdate ? 'PUT' : 'POST';
+
+      const response = await fetch(apiUrl, {
+        method: method,
         body: submitData,
       });
 
       if (response.ok) {
-        const { organizationId } = await response.json();
-        router.push(`/organization/${organizationId}`);
+        const data = await response.json();
+        console.log(`✅ Success! Organization ${isUpdate ? 'updated' : 'created'}:`, data);
+        
+        // Show success state
+        setIsSuccess(true);
+        
+        // Store success info in localStorage for dashboard
+        localStorage.setItem(`org_${isUpdate ? 'update' : 'registration'}_success`, 'true');
+        localStorage.setItem('org_data', JSON.stringify(data));
+        
+        // Wait a moment to show success, then redirect or refresh data
+        setTimeout(() => {
+          if (isUpdate) {
+            // For updates, refresh the existing data
+            checkExistingData();
+            setShowRegistrationForm(false);
+            setIsSuccess(false);
+          } else {
+            // For new registrations, also refresh data to show the display component
+            checkExistingData();
+            setShowRegistrationForm(false);
+            setIsSuccess(false);
+          }
+        }, 2000);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        console.log('API Error Response:', errorData);
+        throw new Error(errorData.message || `${isUpdate ? 'Update' : 'Registration'} failed`);
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrors({ submit: error.message || 'Registration failed. Please try again.' });
+      setErrors({ submit: error.message || `${isUpdate ? 'Update' : 'Registration'} failed. Please try again.` });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+            <svg className="animate-spin w-8 h-8 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Checking Organization Data</h2>
+          <p className="text-gray-400">Please wait while we load your information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If we have existing data and not showing the registration form, display the data
+  if (existingData && !showRegistrationForm) {
+    return <OrganizationDisplay data={existingData} onEdit={handleEditOrganization} />;
+  }
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -264,8 +424,23 @@ export default function OrganizationRegistration() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Organization Registration</h1>
-          <p className="text-gray-400">Join our community and make a difference</p>
+          <h1 className="text-4xl font-bold text-white mb-2">
+            {existingData ? 'Edit Organization' : 'Organization Registration'}
+          </h1>
+          <p className="text-gray-400">
+            {existingData ? 'Update your organization information' : 'Join our community and make a difference'}
+          </p>
+          {existingData && (
+            <button
+              onClick={() => setShowRegistrationForm(false)}
+              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to View
+            </button>
+          )}
         </div>
 
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
@@ -376,12 +551,11 @@ export default function OrganizationRegistration() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <InputField
-                      label="Organization Logo"
+                      label="Organization Logo URL"
                       name="logo"
-                      type="file"
+                      type="url"
                       required
-                      accept="image/*"
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                      placeholder="https://example.com/logo.png"
                       formData={formData}
                       handleInputChange={handleInputChange}
                       errors={errors}
@@ -390,13 +564,18 @@ export default function OrganizationRegistration() {
                       <div className="mt-3">
                         <p className="text-gray-300 text-sm mb-2">Logo Preview:</p>
                         <div className="w-32 h-32 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
-                          <Image
+                          <img
                             src={logoPreview} 
                             alt="Logo preview" 
                             className="w-full h-full object-cover"
-                            width={128}
-                            height={128}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
                           />
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
+                            Preview not available
+                          </div>
                         </div>
                       </div>
                     )}
@@ -404,12 +583,11 @@ export default function OrganizationRegistration() {
 
                   <div>
                     <InputField
-                      label="Main/Hero Image"
+                      label="Main/Hero Image URL"
                       name="mainImage"
-                      type="file"
+                      type="url"
                       required
-                      accept="image/*"
-                      className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                      placeholder="https://example.com/hero-image.jpg"
                       formData={formData}
                       handleInputChange={handleInputChange}
                       errors={errors}
@@ -418,13 +596,18 @@ export default function OrganizationRegistration() {
                       <div className="mt-3">
                         <p className="text-gray-300 text-sm mb-2">Main Image Preview:</p>
                         <div className="w-full h-32 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
-                          <Image
+                          <img
                             src={mainImagePreview} 
                             alt="Main image preview" 
                             className="w-full h-full object-cover"
-                            width={300}
-                            height={128}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
                           />
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
+                            Preview not available
+                          </div>
                         </div>
                       </div>
                     )}
@@ -538,12 +721,11 @@ export default function OrganizationRegistration() {
 
                 <div>
                   <InputField
-                    label="About Us Image"
+                    label="About Us Image URL"
                     name="aboutUsImage"
-                    type="file"
+                    type="url"
                     required
-                    accept="image/*"
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer"
+                    placeholder="https://example.com/about-us.jpg"
                     formData={formData}
                     handleInputChange={handleInputChange}
                     errors={errors}
@@ -552,18 +734,23 @@ export default function OrganizationRegistration() {
                     <div className="mt-3">
                       <p className="text-gray-300 text-sm mb-2">About Us Image Preview:</p>
                       <div className="w-full h-48 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
-                        <Image
+                        <img
                           src={aboutUsImagePreview} 
                           alt="About us image preview" 
                           className="w-full h-full object-cover"
-                          width={400}
-                          height={192}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
                         />
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
+                          Preview not available
+                        </div>
                       </div>
                     </div>
                   )}
                   <p className="text-gray-400 text-sm mt-2">
-                    Upload an image that represents your organizations work or team
+                    Enter a URL for an image that represents your organizations work or team
                   </p>
                 </div>
               </div>
@@ -676,6 +863,18 @@ export default function OrganizationRegistration() {
                     </p>
                   </div>
                 )}
+
+                {isSuccess && (
+                  <div className="bg-green-900/20 border border-green-500 rounded-lg p-4">
+                    <p className="text-green-400 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      🎉 Success! Your organization has been {existingData ? 'updated' : 'registered'} successfully. 
+                      {existingData ? ' Returning to view...' : ' Redirecting to dashboard...'}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -708,8 +907,12 @@ export default function OrganizationRegistration() {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg disabled:opacity-50 hover:from-green-700 hover:to-green-800 transition-all shadow-lg shadow-green-600/20"
+                  disabled={isSubmitting || isSuccess}
+                  className={`flex items-center gap-2 px-8 py-3 text-white rounded-lg disabled:opacity-50 transition-all shadow-lg ${
+                    isSuccess 
+                      ? 'bg-gradient-to-r from-green-600 to-green-700 shadow-green-600/20' 
+                      : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-green-600/20'
+                  }`}
                 >
                   {isSubmitting ? (
                     <>
@@ -717,14 +920,21 @@ export default function OrganizationRegistration() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Registering...
+                      {existingData ? 'Updating...' : 'Submitting...'}
+                    </>
+                  ) : isSuccess ? (
+                    <>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {existingData ? 'Updated Successfully!' : 'Registered Successfully!'}
                     </>
                   ) : (
                     <>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      Complete Registration
+                      {existingData ? 'Update Organization' : 'Complete Registration'}
                     </>
                   )}
                 </button>

@@ -12,7 +12,7 @@ const PageHeader = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-900 text-white px-4 sm:px-6 py-3 sm:py-4 shadow-lg z-50 border-b border-gray-700">
-      <div className="flex justify-between items-center max-w-7xl mx-auto">
+      <div className="flex  items-center w-full mx-auto">
         {/* Left section */}
         <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
           <h1 className="text-lg sm:text-xl text-white font-semibold truncate">

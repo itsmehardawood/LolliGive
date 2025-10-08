@@ -49,7 +49,7 @@ export default function OrganizationPage() {
           title: apiData.name,
           description: [
             apiData.aboutUsText || `At ${apiData.name}, we believe in the power of community and the importance of giving back. Our mission is to create positive change through various programs and initiatives that support those in need.`,
-            "We provide a trusted platform where our community can come together to support meaningful causes. Every contribution helps us expand our reach and impact more lives.",
+            apiData.testimonyText || "We provide a trusted platform where our community can come together to support meaningful causes. Every contribution helps us expand our reach and impact more lives.",
             "Our commitment to transparency means that every dollar donated is used effectively to further our mission and help those who need it most.",
             "Join us in making a difference. Together, we can build a stronger, more compassionate community for everyone."
           ],
@@ -60,9 +60,12 @@ export default function OrganizationPage() {
           subtitle: "Have any questions? We'd love to hear from you and help in any way we can.",
           contactImage: "https://cdn.pixabay.com/photo/2015/11/07/08/49/hand-1030565_1280.jpg",
           contactInfo: {
-            address: apiData.contactInfo?.address || "123 Community Street, Your City, State 12345",
-            phone: apiData.contactInfo?.phone || "+1 (555) 123-4567",
-            email: apiData.contactInfo?.email || `info@${organizationSlug}.org`
+            address: (apiData.contactInfo && apiData.contactInfo.length > 0) ? 
+              apiData.contactInfo[0].address : "123 Community Street, Your City, State 12345",
+            phone: (apiData.contactInfo && apiData.contactInfo.length > 0) ? 
+              apiData.contactInfo[0].phone : "+1 (555) 123-4567",
+            email: (apiData.contactInfo && apiData.contactInfo.length > 0) ? 
+              apiData.contactInfo[0].email : `info@${organizationSlug}.org`
           },
           formAction: (formData) => {
             console.log('Contact form submitted:', formData);
@@ -117,8 +120,10 @@ export default function OrganizationPage() {
           sections: {
             connect: {
               title: "Connect",
-              phone: apiData.contactInfo?.phone || "+1 (555) 123-4567",
-              email: apiData.contactInfo?.email || `info@${organizationSlug}.org`,
+              phone: (apiData.contactInfo && apiData.contactInfo.length > 0) ? 
+                apiData.contactInfo[0].phone : "+1 (555) 123-4567",
+              email: (apiData.contactInfo && apiData.contactInfo.length > 0) ? 
+                apiData.contactInfo[0].email : `info@${organizationSlug}.org`,
               socialLinks: [
                 { icon: "FaFacebook", href: "#" },
                 { icon: "FaTwitter", href: "#" },

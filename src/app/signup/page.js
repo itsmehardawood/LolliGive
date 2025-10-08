@@ -318,12 +318,22 @@ useEffect(() => {
 
       console.log("Account created and verified successfully:", userDataWithExpiry);
 
-      setSuccess("Account created and verified successfully! Redirecting to dashboard...");
+      setSuccess("Account created and verified successfully! Checking access permissions...");
       
-      // Redirect to dashboard
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+      // Only BUSINESS_USER and ENTERPRISE_USER are allowed (same logic as login page)
+      // const userRole = data?.user?.role;
+      const userRole = "BUSINESS_USER"; // For testing purposes - hardcoded role
+      
+      if (userRole === "BUSINESS_USER" || userRole === "ENTERPRISE_USER") {       
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          setSuccess(""); // Clear success message
+          setOtpError("Invalid user. Only business users are allowed to access this platform.");
+        }, 1500);
+      }
     } catch (err) {
       console.error("Error during OTP verification or account creation:", err);
 

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function Navbar({ navbarData, organizationSlug }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,14 +43,37 @@ export default function Navbar({ navbarData, organizationSlug }) {
     }
   };
 
+  // Helper function to check if logo is a URL
+  const isLogoUrl = (logoValue) => {
+    try {
+      new URL(logoValue);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Organization Name */}
           <div className="flex items-center space-x-3">
-            <div className="text-xl font-bold text-red-800">
-              {logo}
+            <div className="flex items-center">
+              {logo && isLogoUrl(logo) ? (
+                <Image
+                  src={logo}
+                  alt={organizationName || "Organization Logo"}
+                  width={120}
+                  height={40}
+                  className="h-8 w-auto object-contain"
+                  priority
+                />
+              ) : (
+                <div className="text-xl font-bold text-red-800">
+                  {logo || "LolliGive"}
+                </div>
+              )}
             </div>
             {organizationName && (
               <>

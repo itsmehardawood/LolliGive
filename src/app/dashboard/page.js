@@ -1,18 +1,13 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, Suspense } from "react";
-import DocumentsScreen from "../components/Dashboard-Screens/DocumentScreens_new";
-import DevelopersScreen from "../components/Dashboard-Screens/Developer";
 import Sidebar from "../components/Dashboard-Screens/Sidebar";
 import HomeScreen from "../components/Dashboard-Screens/Homescreen_new";
-import CardFeatureScreen from "../components/Dashboard-Screens/CardFeatureScreen_new";
 import SubscriptionsScreen from "../components/Dashboard-Screens/SubscriptionScreen_new";
 import MainBusinessScreen from "../components/Dashboard-Screens/BusinessDataScreen/MainBusinessScreen";
 import { apiFetch } from "../lib/api.js";
 import ScanHistorySection from "../components/Dashboard-Screens/Scanhistory/ScanHistory";
 import BillingLogsSection from "../components/Dashboard-Screens/BillingLogsSection/BillingLogsSection";
-import DisplaySettings from "../components/Dashboard-Screens/DisplaySettings";
-import SubBusinessesScreen from "../components/Dashboard-Screens/SubBusinessesScreen";
 import useAutoLogout from "../hooks/Autologout";
 import OrganizationRegistration from "../components/Dashboard-Screens/Dynamic Content Screen/DynamicContent";
 import SharePageCard from "../components/Dashboard-Screens/Dynamic Content Screen/MyPage";
@@ -206,7 +201,7 @@ function DashboardContent() {
     city: "",
     state: "",
     zip_code: "",
-    country: "United States of America",
+    country: "United States",
     // Account Holder Info
     account_holder_first_name: "",
     account_holder_last_name: "",
@@ -239,10 +234,6 @@ function DashboardContent() {
     { id: "profile", label: "Profile Setup" },
     { id: "sub-businesses", label: "Sub Businesses" },
     { id: "balance", label: "Balance" },
-    { id: "subscriptions", label: "Subscriptions" },
-    { id: "documents", label: "Documents" },
-    { id: "Card", label: "Features Settings" },
-    { id: "scanshistory", label: "Scan History" },
     { id: "billing", label: "Billing Logs" },
     { id: "displaysettings", label: "Display Settings" },
     { id: "content-setup", label: "Content Setup" },
@@ -566,8 +557,7 @@ function DashboardContent() {
           verificationReason = businessData.verification_reason;
         }
         
-        console.log("Organization verified status:", organizationVerified);
-        console.log("Organization name:", fetchedBusinessName);
+       
 
         // Update business name state
         if (fetchedBusinessName) {
@@ -641,7 +631,12 @@ function DashboardContent() {
   // Legacy API function to check business status (keeping as backup)
   const checkBusinessStatus = async () => {
     try {
-      const response = await apiFetch(`/business-profile`);
+      const orgKeyId = localStorage.getItem("org_key_id") || userData?.org_key_id;
+      if (!orgKeyId) {
+        console.warn("No org_key_id found, cannot check business status");
+        return;
+      }
+      const response = await apiFetch(`/organization-profile/get-by-org-key-id?org_key_id=${orgKeyId}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -650,8 +645,9 @@ function DashboardContent() {
       const result = await response.json();
 
       if (result.success) {
+        console.log("Business status API response:", result);
         // Check the business_verified field to determine status
-        const businessVerified = result.data?.user?.business_verified;
+        const businessVerified = result.data?.user?.organization_verified || result.data?.business_verified;
 
         const newStatus = getStatusFromBusinessVerified(businessVerified);
         setStatus(newStatus);
@@ -772,29 +768,17 @@ function DashboardContent() {
       case "subscriptions":
         return <SubscriptionsScreen />;
 
-      case "Card":
-        return <CardFeatureScreen />;
+   
 
-      case "documents":
-        return (
-          <DocumentsScreen
-            documents={documents}
-            setActiveTab={handleTabChange}
-            handleFileUpload={handleFileUpload}
-          />
-        );
+  
 
       case "scanshistory":
         return <ScanHistorySection />;
       case "billing":
         return <BillingLogsSection />;
-      case "displaysettings":
-        return <DisplaySettings />;
 
-        case "sub-businesses":
-  return <SubBusinessesScreen />;
-      case "developers":
-        return <DevelopersScreen />;
+
+   
 
       case "content-setup":
         return <OrganizationRegistration />;
