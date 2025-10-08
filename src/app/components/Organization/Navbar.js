@@ -1,9 +1,9 @@
 "use client";
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState } from "react";
 
 export default function Navbar({ navbarData, organizationSlug }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const {
     logo = "LolliGive",
     organizationName,
@@ -11,26 +11,24 @@ export default function Navbar({ navbarData, organizationSlug }) {
       { label: "Home", href: "#home" },
       { label: "About", href: "#about" },
       { label: "Contact", href: "#contact" },
-      { label: "Ministry | Groups", href: "#about" }
-
+      { label: "Ministry | Groups", href: "#about" },
     ],
     donateButton = {
       text: "Donate Now",
-      action: null
-    }
+      action: null,
+    },
   } = navbarData || {};
 
   const handleSmoothScroll = (href) => {
-    if (href.startsWith('#')) {
+    if (href.startsWith("#")) {
       const element = document.querySelector(href);
       if (element) {
-        element.scrollIntoView({ 
-          behavior: 'smooth',
-          block: 'start'
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
         });
       }
     }
-    // Close mobile menu after navigation
     setIsMenuOpen(false);
   };
 
@@ -38,12 +36,10 @@ export default function Navbar({ navbarData, organizationSlug }) {
     if (donateButton.action) {
       donateButton.action();
     } else {
-      // Default action: scroll to donation section
-      handleSmoothScroll('#donate');
+      handleSmoothScroll("#donate");
     }
   };
 
-  // Helper function to check if logo is a URL
   const isLogoUrl = (logoValue) => {
     try {
       new URL(logoValue);
@@ -61,13 +57,11 @@ export default function Navbar({ navbarData, organizationSlug }) {
           <div className="flex items-center space-x-3">
             <div className="flex items-center">
               {logo && isLogoUrl(logo) ? (
-                <Image
+                <img
                   src={logo}
                   alt={organizationName || "Organization Logo"}
-                  width={120}
-                  height={40}
                   className="h-8 w-auto object-contain"
-                  priority
+                  loading="lazy"
                 />
               ) : (
                 <div className="text-xl font-bold text-red-800">
@@ -75,6 +69,7 @@ export default function Navbar({ navbarData, organizationSlug }) {
                 </div>
               )}
             </div>
+
             {organizationName && (
               <>
                 <div className="text-gray-400 hidden sm:block">|</div>
@@ -85,7 +80,7 @@ export default function Navbar({ navbarData, organizationSlug }) {
             )}
           </div>
 
-          {/* Desktop Navigation Menu */}
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             {menuItems.map((item, index) => (
               <a
@@ -102,7 +97,7 @@ export default function Navbar({ navbarData, organizationSlug }) {
             ))}
           </div>
 
-          {/* Desktop Donate Button */}
+          {/* Donate Button */}
           <button
             onClick={handleDonateClick}
             className="hidden md:block bg-red-800 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
@@ -110,11 +105,11 @@ export default function Navbar({ navbarData, organizationSlug }) {
             {donateButton.text}
           </button>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Toggle */}
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-red-800 focus:outline-none focus:text-red-800 p-2"
+              className="text-gray-700 hover:text-red-800 focus:outline-none p-2"
               aria-label="Toggle menu"
             >
               <svg
@@ -136,7 +131,7 @@ export default function Navbar({ navbarData, organizationSlug }) {
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile Dropdown */}
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
@@ -153,7 +148,7 @@ export default function Navbar({ navbarData, organizationSlug }) {
                   {item.label}
                 </a>
               ))}
-              {/* Mobile Donate Button */}
+
               <button
                 onClick={() => {
                   handleDonateClick();
