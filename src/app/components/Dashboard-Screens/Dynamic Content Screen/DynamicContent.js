@@ -236,6 +236,9 @@ export default function OrganizationRegistration() {
         if (formData.welcomeText.length < 30) {
           newErrors.welcomeText = 'Welcome text should be at least 30 characters';
         }
+          if (formData.welcomeText.length > 300) {
+            newErrors.welcomeText = 'Welcome text cannot exceed 300 characters';
+          }
         if (!formData.logo.trim()) newErrors.logo = 'Logo URL is required';
         if (formData.logo && !isValidUrl(formData.logo)) newErrors.logo = 'Please enter a valid logo URL';
         if (!formData.mainImage.trim()) newErrors.mainImage = 'Main image URL is required';
@@ -625,7 +628,8 @@ export default function OrganizationRegistration() {
                     onChange={handleInputChange}
                     required
                     rows={3}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                      maxLength={300}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                     placeholder="Write a welcoming message for visitors to your organization's page..."
                   />
                   {errors.welcomeText && (
