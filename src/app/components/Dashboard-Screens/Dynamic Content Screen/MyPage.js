@@ -117,7 +117,7 @@ export default function SharePageCard() {
   // Error UI
   if (error) {
     return (
-      <div className="h-[400px] bg-black flex flex-col items-center justify-center px-2">
+      <div className="h-[500px] bg-black flex flex-col items-center justify-center px-2">
         <div className="max-w-sm w-[300px] mx-auto bg-gray-900 shadow-xl rounded-xl p-4 text-center space-y-2 border border-red-700">
           <div className="text-red-400 text-3xl">⚠️</div>
           <h2 className="text-lg font-bold text-white">Setup Required</h2>
@@ -134,7 +134,7 @@ export default function SharePageCard() {
   }
 
   return (
-    <div className="h-[400px] bg-black flex flex-col items-center justify-start py-6 px-2">
+    <div className="h-[500px] bg-black flex flex-col items-center justify-start py-8 px-3">
       {/* Heading */}
       <div className="text-center max-w-md mb-4">
         <h1 className="text-xl sm:text-2xl font-bold text-white">

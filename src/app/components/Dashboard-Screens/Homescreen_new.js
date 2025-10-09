@@ -37,7 +37,7 @@ function HomeScreen({ status, setActiveTab }) {
         };
       case 'approved':
         return {
-          bgColor: 'bg-blue-50',
+          bgColor: 'bg-blue-100',
           borderColor: 'border-blue-200',
           titleColor: 'text-blue-800',
           textColor: 'text-blue-700',
