@@ -413,9 +413,9 @@ export default function OrganizationRegistration() {
       // Determine if this is an update or create operation
       const isUpdate = existingData !== null;
       const apiUrl = isUpdate 
-        ? 'http://54.167.124.195:8002/api/companies'
+        ? 'http://54.167.124.195:8002/api/companies/update'
         : 'http://54.167.124.195:8002/api/companies';
-
+      
       const method = isUpdate ? 'PUT' : 'POST';
 
       const response = await fetch(apiUrl, {

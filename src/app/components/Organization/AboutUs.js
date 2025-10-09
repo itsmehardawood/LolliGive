@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 
 export default function AboutUs({ aboutData }) {
   const {
@@ -16,21 +15,20 @@ export default function AboutUs({ aboutData }) {
   return (
     <section className="min-h-[500px] grid grid-cols-1 lg:grid-cols-2 text-white">
       {/* Left side: Text with bg and image on small screens */}
-      <div className="bg-red-800 flex flex-col justify-center p-6 sm:p-8 md:p-10 lg:p-12  shadow-lg order-2 lg:order-1">
+      <div className="bg-red-800 flex flex-col justify-center p-6 sm:p-8 md:p-10 lg:p-12 shadow-lg order-2 lg:order-1">
         {/* Image visible only on mobile/sm screens */}
         <div className="relative w-full h-48 mb-6 sm:hidden">
-          <Image
+          <img
             src={backgroundImage}
             alt="About Us"
-            fill
-            className="object-cover rounded-lg"
+            className="object-cover rounded-lg w-full h-full"
           />
         </div>
 
         {description.map((paragraph, index) => (
           <div key={index}>
             <p className="text-sm sm:text-md lg:text-base leading-relaxed">
-              {paragraph.replace('LolliGive', title)}
+              {paragraph.replace("LolliGive", title)}
             </p>
             {index < description.length - 1 && <br />}
           </div>
@@ -38,12 +36,11 @@ export default function AboutUs({ aboutData }) {
       </div>
 
       {/* Right side: Image visible only on large screens */}
-      <div className="relative w-full h-full min-h-[500px] hidden lg:block order-1 lg:order-2 ">
-        <Image
+      <div className="relative w-full h-full min-h-[500px] hidden lg:block order-1 lg:order-2">
+        <img
           src={backgroundImage}
           alt="About Us"
-          fill
-          className="object-cover rounded-br-[120px]"
+          className="object-cover rounded-br-[120px] w-full h-full"
         />
       </div>
     </section>
