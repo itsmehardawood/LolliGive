@@ -329,10 +329,10 @@ function DashboardContent() {
       const formData = new FormData();
       
       // Debug: Check businessInfo state before adding to FormData
-      console.log("=== BusinessInfo State ===");
-      console.log("registration_document:", businessInfo.registration_document);
-      console.log("account_holder_id_document:", businessInfo.account_holder_id_document);
-      console.log("========================");
+      // console.log("=== BusinessInfo State ===");
+      // console.log("registration_document:", businessInfo.registration_document);
+      // console.log("account_holder_id_document:", businessInfo.account_holder_id_document);
+      // console.log("========================");
       
       // Add all business information fields individually
       Object.keys(businessInfo).forEach((key) => {
@@ -343,7 +343,7 @@ function DashboardContent() {
           // Only append if it's an actual File object
           if (value instanceof File) {
             formData.append(key, value);
-            console.log(`✓ Added file: ${key} - ${value.name}`);
+            // console.log(`✓ Added file: ${key} - ${value.name}`);
           } else if (value && typeof value === 'object' && Object.keys(value).length === 0) {
             console.warn(`⚠ Skipping empty object for: ${key}`);
           } else {
@@ -357,15 +357,15 @@ function DashboardContent() {
       });
       
       //Checking on console
-      console.log("=== FormData Debug ===");
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(`${key}: [File] ${value.name} (${value.size} bytes, ${value.type})`);
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-      console.log("===================");
+      // console.log("=== FormData Debug ===");
+      // for (let [key, value] of formData.entries()) {
+      //   if (value instanceof File) {
+      //     console.log(`${key}: [File] ${value.name} (${value.size} bytes, ${value.type})`);
+      //   } else {
+      //     console.log(`${key}: ${value}`);
+      //   }
+      // }
+      // console.log("===================");
       
       // Get JWT token from localStorage for authentication
       const storedUserData = localStorage.getItem("userData");
@@ -490,7 +490,7 @@ function DashboardContent() {
       }
     } catch (error) {
       console.error("Submission failed:", error);
-      console.log("data we are sending:", businessInfo);
+      // console.log("data we are sending:", businessInfo);
       // Handle different types of errors
       if (error.message.includes("400")) {
         setSubmitError(
@@ -536,7 +536,7 @@ function DashboardContent() {
       }
 
       const result = await response.json();
-      console.log("Organization verification API response:", result);
+      // console.log("Organization verification API response:", result);
 
       if (result.status === true) {
         // Handle array response structure - take first item if it's an array
@@ -567,7 +567,7 @@ function DashboardContent() {
         // Map the organization_verified value to our internal status
         const newStatus = getStatusFromBusinessVerified(organizationVerified);
         setStatus(newStatus);
-        console.log("Mapped status:", newStatus);
+        // console.log("Mapped status:", newStatus);
 
         // Update localStorage if the status has changed
         if (userData && (userData.organization_verified !== organizationVerified || userData.business_verified !== organizationVerified)) {
@@ -604,7 +604,7 @@ function DashboardContent() {
           const userObj = updatedUserData.user || updatedUserData;
           setUserData(userObj);
 
-          console.log("Updated user data in localStorage:", updatedUserData);
+          // console.log("Updated user data in localStorage:", updatedUserData);
         }
 
         return businessData;
@@ -623,7 +623,7 @@ function DashboardContent() {
           userData.organization_verified || userData.business_verified
         );
         setStatus(fallbackStatus);
-        console.log("Using fallback status from localStorage:", fallbackStatus);
+        // console.log("Using fallback status from localStorage:", fallbackStatus);
       }
     }
   };
@@ -645,7 +645,7 @@ function DashboardContent() {
       const result = await response.json();
 
       if (result.success) {
-        console.log("Business status API response:", result);
+        // console.log("Business status API response:", result);
         // Check the business_verified field to determine status
         const businessVerified = result.data?.user?.organization_verified || result.data?.business_verified;
 

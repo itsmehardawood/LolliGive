@@ -11,7 +11,7 @@ export default function PendingProfileStatus({ onContactSupport }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-black text-white">
-      <div className="w-full max-w-lg bg-gray-800 rounded-xl shadow-lg p-6 space-y-6 text-center">
+      <div className="w-full max-w-lg bg-gray-900 rounded-xl shadow-lg p-6 space-y-6 text-center">
         
         {/* Header */}
         <div>

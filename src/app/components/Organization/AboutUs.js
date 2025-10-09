@@ -17,11 +17,11 @@ export default function AboutUs({ aboutData }) {
       {/* Left side: Text with bg and image on small screens */}
       <div className="bg-red-800 flex flex-col justify-center p-6 sm:p-8 md:p-10 lg:p-12 shadow-lg order-2 lg:order-1">
         {/* Image visible only on mobile/sm screens */}
-        <div className="relative w-full h-48 mb-6 sm:hidden">
+        <div className="relative w-full h-48 mb-6 rounded-2xl p-2 sm:hidden bg-white ">
           <img
             src={backgroundImage}
             alt="About Us"
-            className="object-cover rounded-lg w-full h-full"
+            className="object-contain rounded-lg w-full h-full"
           />
         </div>
 

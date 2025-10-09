@@ -150,7 +150,7 @@ export default function OrganizationRegistration() {
       
       // If user profile is not approved, show message but allow them to continue
       if (profileStatus !== 'approved') {
-        console.log(`Profile status is ${profileStatus}, but allowing access to organization setup`);
+        // console.log(`Profile status is ${profileStatus}, but allowing access to organization setup`);
       }
       
       // Get org_key_id from localStorage
@@ -176,15 +176,15 @@ export default function OrganizationRegistration() {
         const result = await response.json();
         
         if (result.success && result.data) {
-          console.log('✅ Existing organization data found:', result.data);
+          // console.log('✅ Existing organization data found:', result.data);
           setExistingData(result.data);
           setShowRegistrationForm(false);
         } else {
-          console.log('❌ No organization data found, showing registration form');
+          // console.log('❌ No organization data found, showing registration form');
           setShowRegistrationForm(true);
         }
       } else {
-        console.log('❌ Error fetching organization data, showing registration form');
+        // console.log('❌ Error fetching organization data, showing registration form');
         setShowRegistrationForm(true);
       }
     } catch (error) {
@@ -403,15 +403,15 @@ export default function OrganizationRegistration() {
 
 
       // Debug: Log all FormData entries
-      console.log('=== FormData being sent to API ===');
-      for (let [key, value] of submitData.entries()) {
-        if (value instanceof File) {
-          console.log(`${key}:`, `[FILE] ${value.name} (${value.type}, ${value.size} bytes)`);
-        } else {
-          console.log(`${key}:`, value);
-        }
-      }
-      console.log('=== End FormData ===');
+      // console.log('=== FormData being sent to API ===');
+      // for (let [key, value] of submitData.entries()) {
+      //   if (value instanceof File) {
+      //     console.log(`${key}:`, `[FILE] ${value.name} (${value.type}, ${value.size} bytes)`);
+      //   } else {
+      //     console.log(`${key}:`, value);
+      //   }
+      // }
+      // console.log('=== End FormData ===');
 
       // Use the same POST API endpoint for both create and update operations
       const isUpdate = existingData !== null;
@@ -424,7 +424,7 @@ export default function OrganizationRegistration() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Success! Organization ${isUpdate ? 'updated' : 'created'}:`, data);
+        // console.log(`✅ Success! Organization ${isUpdate ? 'updated' : 'created'}:`, data);
         
         // Show success state
         setIsSuccess(true);
@@ -449,7 +449,7 @@ export default function OrganizationRegistration() {
         }, 2000);
       } else {
         const errorData = await response.json();
-        console.log('API Error Response:', errorData);
+        // console.log('API Error Response:', errorData);
         throw new Error(errorData.message || `${isUpdate ? 'Update' : 'Registration'} failed`);
       }
     } catch (error) {
@@ -479,7 +479,7 @@ export default function OrganizationRegistration() {
   }
 
   // Show pending status if user's business profile is pending approval
-  if (userProfileStatus === 'pending') {
+  if (userProfileStatus === 'pending' || userProfileStatus === 'incomplete-profile') {
     return <PendingProfileStatus onContactSupport={handleContactSupport} />;
   }
 

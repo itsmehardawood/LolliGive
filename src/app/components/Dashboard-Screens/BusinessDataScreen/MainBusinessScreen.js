@@ -35,7 +35,7 @@ function MainBusinessScreen({
 
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        console.log("User data found in localStorage:", parsedUser);
+        // console.log("User data found in localStorage:", parsedUser);
 
         // Handle nested user object structure - extract the user object
         const userObj = parsedUser.user || parsedUser;
@@ -54,7 +54,7 @@ function MainBusinessScreen({
         };
         
         setUserData(enhancedUserObj);
-        console.log("Enhanced userData set:", enhancedUserObj);
+        // console.log("Enhanced userData set:", enhancedUserObj);
 
         // Fetch business verification status from API
         const orgKeyId = userObj.org_key_id || localStorage.getItem("org_key_id");
@@ -66,7 +66,7 @@ function MainBusinessScreen({
       
           if (response.ok) {
             const data = await response.json();
-            console.log("Organization verification API response:", data);
+            // console.log("Organization verification API response:", data);
             
             // Handle array response structure - take first item if it's an array
             if (data.status && data.data && Array.isArray(data.data) && data.data.length > 0) {
@@ -81,7 +81,7 @@ function MainBusinessScreen({
                   user_id: data.data[0].user_id
                 }
               };
-              console.log("Transformed verification data:", transformedData);
+              // console.log("Transformed verification data:", transformedData);
               setVerificationData(transformedData);
               setApiError(null);
               
@@ -98,7 +98,7 @@ function MainBusinessScreen({
                     }
                   };
                   localStorage.setItem("userData", JSON.stringify(updatedStorage));
-                  console.log("Updated localStorage with verification status:", latestOrgVerified);
+                  // console.log("Updated localStorage with verification status:", latestOrgVerified);
                   
                   // Also update the state
                   setUserData({
@@ -176,9 +176,9 @@ function MainBusinessScreen({
       if (localData) {
         try {
           const parsedData = JSON.parse(localData);
-          console.log('Parsed userData:', parsedData);
+          // console.log('Parsed userData:', parsedData);
           const userEmail = parsedData?.user?.email || ''; // ← nested inside `user`
-          console.log('Extracted email:', userEmail);
+          // console.log('Extracted email:', userEmail);
           
           setBusinessInfo((prev) => ({
             ...prev,
@@ -259,12 +259,12 @@ function MainBusinessScreen({
   // Priority: Use organization_verified from userData if available, fallback to verification status from API
   const currentStatus = organizationVerified || verificationStatus;
   
-  console.log("Current verification status:", {
-    fromUserData: organizationVerified,
-    fromAPI: verificationStatus,
-    final: currentStatus,
-    userDataKeys: userData ? Object.keys(userData) : 'no userData'
-  });
+  // console.log("Current verification status:", {
+  //   fromUserData: organizationVerified,
+  //   fromAPI: verificationStatus,
+  //   final: currentStatus,
+  //   userDataKeys: userData ? Object.keys(userData) : 'no userData'
+  // });
 
   if (currentStatus === "APPROVED" || currentStatus === "VERIFIED" || currentStatus === "ACTIVE") {
     return <ApprovedStatus verificationData={verificationData} />;

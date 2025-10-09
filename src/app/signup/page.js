@@ -58,10 +58,10 @@ useEffect(() => {
       {
         size: "invisible",
         callback: (response) => {
-          console.log("reCAPTCHA solved");
+          // console.log("reCAPTCHA solved");
         },
         "expired-callback": () => {
-          console.log("reCAPTCHA expired");
+          // console.log("reCAPTCHA expired");
         },
       }
     );
@@ -186,7 +186,7 @@ useEffect(() => {
 
     try {
       // Step 1: Check if user already exists
-      console.log("Checking if user exists...");
+      // console.log("Checking if user exists...");
       const userExistsResult = await checkUserExists(formData.email, formData.phone);
       
       if (userExistsResult.exists) {
@@ -229,7 +229,7 @@ useEffect(() => {
       setConfirmationResult(confirmation);
       setShowOtpForm(true);
       setSuccess("Verification code sent to your phone. Please verify to complete signup.");
-      console.log("Firebase OTP sent successfully");
+      // console.log("Firebase OTP sent successfully");
 
     } catch (err) {
       console.error("Error in signup process:", err);
@@ -264,7 +264,7 @@ useEffect(() => {
       const result = await confirmationResult.confirm(otp);
       const user = result.user;
 
-      console.log("Firebase OTP verified successfully:", user);
+      // console.log("Firebase OTP verified successfully:", user);
 
       // Step 2: NOW create account via API since OTP is verified
       const apiData = {
@@ -311,12 +311,12 @@ useEffect(() => {
       const orgKeyId = data.user?.org_key_id || data.org_key_id;
       if (orgKeyId) {
         localStorage.setItem("org_key_id", orgKeyId);
-        console.log("org_key_id stored:", orgKeyId);
+        // console.log("org_key_id stored:", orgKeyId);
       }
       
       setApiUserData(userDataWithExpiry);
 
-      console.log("Account created and verified successfully:", userDataWithExpiry);
+      // console.log("Account created and verified successfully:", userDataWithExpiry);
 
       setSuccess("Account created and verified successfully! Redirecting to dashboard...");
       
@@ -359,7 +359,7 @@ useEffect(() => {
 
     try {
       const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
-      console.log("Resending Firebase OTP to:", fullPhoneNumber);
+      // console.log("Resending Firebase OTP to:", fullPhoneNumber);
 
       // Validate phone number format
       const phoneRegex = /^\+[1-9]\d{1,14}$/;
@@ -378,7 +378,7 @@ useEffect(() => {
       setConfirmationResult(confirmation);
       setSuccess("Verification code resent successfully!");
       
-      console.log("Firebase OTP resent successfully");
+      // console.log("Firebase OTP resent successfully");
     } catch (err) {
       console.error("Resend OTP error:", err);
       setOtpError("Failed to resend verification code. Please try again.");

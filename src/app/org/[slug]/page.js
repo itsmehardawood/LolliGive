@@ -72,7 +72,7 @@ export default function OrganizationPage() {
               apiData.contactInfo[0].email : `info@${organizationSlug}.org`
           },
           formAction: (formData) => {
-            console.log('Contact form submitted:', formData);
+            // console.log('Contact form submitted:', formData);
             alert('Thank you for your message! We will get back to you soon.');
           }
         },

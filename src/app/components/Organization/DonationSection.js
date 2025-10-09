@@ -196,7 +196,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
   };
 
   // Debug: log orgId when component renders
-  console.log('DonationSection orgId:', orgId);
+  // console.log('DonationSection orgId:', orgId);
 
   return (
 
@@ -214,7 +214,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
 
     {/* Form Wrapper */}
     <div className="flex justify-center">
-      <div className="w-full sm:w-[500px] lg:w-[600px] bg-black text-white rounded-xl shadow-xl border border-white p-6 sm:p-8 lg:p-10">
+      <div className="w-full sm:w-[500px] lg:w-[600px] bg-black text-white rounded-xl shadow-xl border border-gray-500 p-6 sm:p-8 lg:p-10">
         {step === 1 ? (
           <div>
             <h3 className="text-xl font-bold text-red-700 mb-6">
@@ -337,7 +337,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
             </h3>
 
             {/* Donation Summary */}
-            <div className="bg-white text-black rounded-lg p-4 mb-6">
+            <div className="bg-zinc-900 text-white rounded-lg p-4 mb-6">
               <h4 className="font-semibold mb-2">Donation Summary</h4>
               <div className="text-sm space-y-1">
                 <div className="flex justify-between">

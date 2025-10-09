@@ -44,7 +44,7 @@ const BusinessForm = ({
           Complete Your Organization Profile
         </h2>
 
-        <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-8">
+        <div className="bg-gray-900 rounded-lg shadow-sm border border-gray-700 p-8">
           
           {/* Error Message */}
           {submitError && (
@@ -108,7 +108,7 @@ const BusinessForm = ({
 
           <div className="space-y-8">
             {/* Section Heading */}
-            <h3 className="text-lg font-medium text-gray-100 border-b border-gray-600 pb-3">
+            <h3 className="text-lg font-bold text-gray-100 border-b border-gray-600 pb-3">
               Organization Information
             </h3>
 
@@ -148,7 +148,7 @@ const BusinessForm = ({
               </div>
 
               {/* Organization Email */}
-              <div>
+              <div className="">
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Organization Email *
                 </label>
@@ -161,6 +161,8 @@ const BusinessForm = ({
                   className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-400"
                   required 
                 />
+               <div className='text-sm text-gray-400 mt-2 italic'>( This should be the same organization email you used to register account )</div>
+
               </div>
             </div>
 
