@@ -41,7 +41,7 @@ const ApprovedStatus = ({ verificationData }) => {
           <div className="bg-slate-700 border-b border-gray-700 px-6 py-4">
             <h2 className="text-lg font-semibold text-white flex items-center">
               <FileText className="w-5 h-5 mr-2" />
-              Verified Business Information
+              Verified Organization Information
             </h2>
           </div>
 
@@ -50,7 +50,7 @@ const ApprovedStatus = ({ verificationData }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-400 block mb-1">Business Name</label>
+                  <label className="text-sm font-medium text-gray-400 block mb-1">Organization Name</label>
                   <p className="text-base font-semibold text-white">
                     {profile?.organization_name || 'null'}
                   </p>
@@ -90,7 +90,7 @@ const ApprovedStatus = ({ verificationData }) => {
             <div className="mb-8">
               <div className="flex items-center mb-4 pb-2 border-b border-gray-700">
                 <Building className="w-5 h-5 text-gray-300 mr-2" />
-                <h3 className="text-base font-semibold text-white">Business Address</h3>
+                <h3 className="text-base font-semibold text-white">Organization Address</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>

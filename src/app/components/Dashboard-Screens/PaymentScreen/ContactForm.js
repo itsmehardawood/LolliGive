@@ -52,7 +52,7 @@ export default function ContactForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Business Email *
+              Organization Email *
             </label>
             <input
               type="email"
@@ -87,7 +87,7 @@ export default function ContactForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-2">
-              Business Type *
+              Organization Type *
             </label>
             <select
               id="businessType"
@@ -98,7 +98,7 @@ export default function ContactForm({
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               disabled={submitting}
             >
-              <option value="">Select your business type</option>
+              <option value="">Select your Organization type</option>
               <option value="ecommerce">E-commerce</option>
               <option value="saas">SaaS/Software</option>
               <option value="marketplace">Marketplace</option>

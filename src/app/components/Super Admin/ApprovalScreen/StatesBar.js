@@ -5,9 +5,9 @@ const StatsCards = ({ stats }) => {
   return (
     <div className="px-4 sm:px-5 pt-2 pb-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+        <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-blue-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1">
           <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-600 mr-3 transition-transform duration-200 hover:scale-110">
+            <div className="p-2 rounded-lg bg-yellow-100 text-blue-600 mr-3 transition-transform duration-200 hover:scale-110">
               <Clock className="h-5 w-5" />
             </div>
             <div>

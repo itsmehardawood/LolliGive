@@ -38,12 +38,12 @@ const NavigationSidebar = ({
     } catch (err) {
       console.error("Error reading userData:", err);
     }
-  }, []);
+  }, []); 
 
   const tabs = [
     { id: "home", label: "Home", icon: Home },
     { id: "enterprise", label: "Organization Approval", icon: Building2 },
-    // { id: "scanhistory", label: "Scan History", icon: History },
+    { id: "transactions", label: "Transaction History", icon: History },
     //  { id: "EnterpriseUsers", label: "Enterprise Users", icon: Building2 },
     // { id: "pricing", label: "Pricing", icon: DollarSign },
     // { id: "billing", label: "Billing Logs", icon: Receipt },
@@ -111,7 +111,7 @@ const NavigationSidebar = ({
                     key={id}
                     onClick={() => handleTabClick(id, label)}
                     className={`
-                      relative w-full flex items-center text-left rounded-lg transition-all duration-200 group
+                      relative w-full flex items-center text-left text-sm rounded-lg transition-all duration-200 group
                       ${sidebarOpen ? "px-4 py-3" : "px-2 py-3 justify-center"}
                       ${
                         isActive
@@ -153,7 +153,7 @@ const NavigationSidebar = ({
             <div className="mb-3 flex items-center space-x-2 text-sm text-gray-400">
               <span>Dashboard</span>
               <span>•</span>
-              <span className="font-medium" style={{color: '#ffffff'}}>{activeTab}</span>
+              <span className="font-medium text-[12px]" style={{color: '#ffffff'}}>{activeTab}</span>
             </div>
 
             <div className="px-3 py-2 bg-gray-800 rounded-lg">

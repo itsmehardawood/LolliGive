@@ -42,7 +42,7 @@ const PendingStatus = ({ verificationData, userData, submitSuccess, handleManual
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 text-green-400 mr-3" />
               <p className="text-green-200 font-medium">
-                Your business profile has been successfully submitted!
+                Your Organization profile has been successfully submitted!
               </p>
             </div>
           </div>
@@ -63,7 +63,7 @@ const PendingStatus = ({ verificationData, userData, submitSuccess, handleManual
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-400 block mb-1">Business Name</label>
+                  <label className="text-sm font-medium text-gray-400 block mb-1">Organization Name</label>
                   <p className="text-base text-white">
                     {profile?.organization_name || 'null'}
                   </p>
@@ -85,7 +85,7 @@ const PendingStatus = ({ verificationData, userData, submitSuccess, handleManual
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-400 block mb-1">Business Email</label>
+                  <label className="text-sm font-medium text-gray-400 block mb-1">Organization Email</label>
                   <p className="text-base text-white font-mono bg-gray-900 px-3 py-2 rounded-md">
                     {userData?.email || 'null'}
                   </p>
@@ -97,7 +97,7 @@ const PendingStatus = ({ verificationData, userData, submitSuccess, handleManual
             <div className="mb-8">
               <div className="flex items-center mb-4 pb-2 border-b border-gray-700">
                 <Building className="w-5 h-5 text-gray-300 mr-2" />
-                <h3 className="text-base font-semibold text-white">Business Address</h3>
+                <h3 className="text-base font-semibold text-white">Organization Address</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>

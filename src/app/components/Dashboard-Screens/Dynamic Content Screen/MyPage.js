@@ -105,10 +105,10 @@ export default function SharePageCard() {
   // Loading UI
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 text-indigo-400 animate-spin mx-auto" />
-          <p className="text-gray-400 text-lg">Loading your sharing page...</p>
+      <div className="min-h-[400px] bg-black flex flex-col items-center justify-center px-2">
+        <div className="text-center space-y-2">
+          <Loader2 className="h-8 w-8 text-indigo-400 animate-spin mx-auto" />
+          <p className="text-gray-400 text-base">Loading your sharing page...</p>
         </div>
       </div>
     );
@@ -117,14 +117,14 @@ export default function SharePageCard() {
   // Error UI
   if (error) {
     return (
-      <div className="h-[600px] bg-black flex flex-col items-center justify-center px-4">
-        <div className="max-w-md w-full mx-auto bg-gray-900 shadow-xl rounded-2xl p-8 text-center space-y-4 border border-red-700">
-          <div className="text-red-400 text-5xl">⚠️</div>
-          <h2 className="text-2xl font-bold text-white">Setup Required</h2>
-          <p className="text-gray-300">{error}</p>
+      <div className="h-[400px] bg-black flex flex-col items-center justify-center px-2">
+        <div className="max-w-sm w-[300px] mx-auto bg-gray-900 shadow-xl rounded-xl p-4 text-center space-y-2 border border-red-700">
+          <div className="text-red-400 text-3xl">⚠️</div>
+          <h2 className="text-lg font-bold text-white">Setup Required</h2>
+          <p className="text-gray-300 text-sm">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            className="mt-2 px-4 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm"
           >
             Try Again
           </button>
@@ -134,38 +134,38 @@ export default function SharePageCard() {
   }
 
   return (
-    <div className="h-[600px] bg-black flex flex-col items-center justify-start py-12 px-4">
+    <div className="h-[400px] bg-black flex flex-col items-center justify-start py-6 px-2">
       {/* Heading */}
-      <div className="text-center max-w-2xl mb-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+      <div className="text-center max-w-md mb-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-white">
           Share Your Giving Page
         </h1>
-        <p className="mt-3 text-lg text-gray-400">
+        <p className="mt-2 text-sm text-gray-400">
           Easily share your unique <span className="text-indigo-400">Lolligive</span> page with friends, family, and supporters.  
           Use the link below or download the QR code to spread the word.
         </p>
       </div>
 
       {/* Card */}
-      <div className="max-w-md w-full mx-auto bg-gray-900 shadow-xl rounded-2xl p-8 text-center space-y-6 border border-gray-700 text-gray-100">
+      <div className=" max-w-sm w-[300px] mx-auto bg-gray-900 shadow-xl rounded-xl p-4 text-center space-y-4 border border-gray-700 text-gray-100">
         {/* Header */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex items-center justify-center gap-2">
-            <Share2 className="h-6 w-6 text-indigo-400" />
-            <h2 className="text-2xl font-bold text-white">Your Shareable Page</h2>
+            <Share2 className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-lg font-bold text-white">Your Shareable Page</h2>
           </div>
-          <p className="text-sm text-gray-400">
+          <p className="text-xs text-gray-400">
             Share it with your network by copying the link or scanning the QR code.
           </p>
         </div>
 
         {/* QR Code */}
         <div className="flex justify-center">
-          <div className="bg-gray-800 p-4 rounded-xl shadow-inner">
+          <div className="bg-gray-800 p-2 rounded-xl shadow-inner">
             <QRCode
               id="qr-code"
               value={shareUrl}
-              size={200}
+              size={120}
               bgColor="#111827"
               fgColor="#F9FAFB"
             />
@@ -173,19 +173,19 @@ export default function SharePageCard() {
         </div>
 
         {/* URL + Copy */}
-        <div className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 shadow-inner">
-          <span className="text-sm text-gray-300 truncate max-w-[70%]">
+        <div className="flex items-center justify-between bg-gray-800 rounded-lg px-2 py-2 shadow-inner">
+          <span className="text-xs text-gray-300 truncate max-w-[70%]">
             {shareUrl}
           </span>
           <button
             onClick={handleCopy}
-            className="ml-2 p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition"
+            className="ml-2 p-1 rounded-lg bg-gray-700 hover:bg-gray-600 transition"
             aria-label={copied ? "Copied" : "Copy link"}
           >
             {copied ? (
-              <Check className="h-4 w-4 text-green-400" />
+              <Check className="h-3 w-3 text-green-400" />
             ) : (
-              <Copy className="h-4 w-4 text-gray-300" />
+              <Copy className="h-3 w-3 text-gray-300" />
             )}
           </button>
         </div>
@@ -193,9 +193,9 @@ export default function SharePageCard() {
         {/* Download Button */}
         <button
           onClick={handleDownload}
-          className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-3 rounded-lg shadow-lg hover:bg-indigo-700 transition font-semibold"
+          className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-2 py-2 rounded-lg shadow-lg hover:bg-indigo-700 transition text-sm font-semibold"
         >
-          <Download className="h-5 w-5" />
+          <Download className="h-4 w-4" />
           Download QR Code
         </button>
       </div>

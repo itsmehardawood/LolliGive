@@ -15,6 +15,7 @@ import TempDisplaySettings from '../components/Super Admin/General/TempDisplaySe
 import NavigationSidebar from '../components/Super Admin/General/AdminNav';
 import DashboardFooter from '../components/Super Admin/General/AdminFooter';
 import PageHeader from '../components/Super Admin/General/AdminHeader';
+import TransactionFilter from '../components/Super Admin/TransactionsAll';
 
 
 const AdminDashboard = () => {
@@ -113,6 +114,8 @@ const AdminDashboard = () => {
         return <HomePage/>
       case 'Organization Approval':
         return <BusinessApprovalSectionUpdated />;
+      case 'Transaction History':
+        return <TransactionFilter />;
       case 'Pricing':
         return <PricingSectionAdmin />;
       case 'User Activity':

@@ -410,16 +410,12 @@ export default function OrganizationRegistration() {
       }
       console.log('=== End FormData ===');
 
-      // Determine if this is an update or create operation
+      // Use the same POST API endpoint for both create and update operations
       const isUpdate = existingData !== null;
-      const apiUrl = isUpdate 
-        ? 'http://54.167.124.195:8002/api/companies/update'
-        : 'http://54.167.124.195:8002/api/companies';
-      
-      const method = isUpdate ? 'PUT' : 'POST';
+      const apiUrl = 'https://api.lolligive.com/api/companies';
 
       const response = await fetch(apiUrl, {
-        method: method,
+        method: 'POST',
         body: submitData,
       });
 
@@ -517,7 +513,7 @@ export default function OrganizationRegistration() {
                   <div className="text-left">
                     <p className="text-yellow-300 font-semibold text-sm">Profile Status: {userProfileStatus.replace('-', ' ').toUpperCase()}</p>
                     <p className="text-yellow-200 text-xs mt-1">
-                      {userProfileStatus === 'incomplete-profile' && 'Complete your business profile setup first for full access to features.'}
+                      {userProfileStatus === 'incomplete-profile' && 'Complete your organization profile setup first for full access to features.'}
                       {userProfileStatus === 'rejected' && 'Your profile was not approved. Contact support for assistance.'}
                       {userProfileStatus === 'error' && 'Unable to verify profile status. Contact support if issues persist.'}
                     </p>

@@ -125,8 +125,8 @@ function MainBusinessScreen({
         }
       }
     } catch (error) {
-      console.error("Error fetching business verification status:", error);
-      setApiError("Error loading business verification status");
+      console.error("Error fetching organization verification status:", error);
+      setApiError("Error loading organization verification status");
     } finally {
       setLoading(false);
     }

@@ -477,12 +477,12 @@ const handleOtpVerification = async () => {
 
                     <div className="text-center">
                       <span className="text-sm text-gray-600">
-                        Business user?{" "}
+                        Organization user?{" "}
                         <Link
                           href="/login"
                           className="font-medium text-blue-600 hover:text-blue-500"
                         >
-                          Business Login
+                          Organization Login
                         </Link>
                       </span>
                     </div>

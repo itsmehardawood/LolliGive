@@ -17,7 +17,7 @@ const PageHeader = () => {
         <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
           <h1 className="text-lg sm:text-xl text-white font-semibold truncate">
             <span className="hidden sm:inline">Super Admin Dashboard</span>
-            <span className="sm:hidden">Admin Panel</span>
+            <span className="sm:hidden">Super Admin Panel</span>
           </h1>
           <div className="hidden lg:flex items-center space-x-2 text-sm text-gray-400">
             <span>•</span>
@@ -28,10 +28,7 @@ const PageHeader = () => {
         {/* Right section - Desktop */}
         <div className="hidden sm:flex items-center space-x-4 lg:space-x-6">
           <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-sm text-gray-400">Online</span>
-            </div>
+         
             <span className="text-sm text-gray-400 hidden lg:inline">Welcome, Admin!</span>
           </div>
           

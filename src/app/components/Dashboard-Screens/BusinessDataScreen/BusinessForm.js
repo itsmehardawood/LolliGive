@@ -24,18 +24,13 @@ const BusinessForm = ({
       return false;
     }
     
-    // Check file type
+    // Check file type - only PDF allowed
     const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/jpeg',
-      'image/jpg',
-      'image/png'
+      'application/pdf'
     ];
     
     if (!allowedTypes.includes(file.type)) {
-      setFileError(`${fieldName}: Please upload a PDF, DOC, DOCX, JPG, or PNG file`);
+      setFileError(`${fieldName}: Please upload a PDF file only`);
       return false;
     }
     
@@ -102,7 +97,7 @@ const BusinessForm = ({
                   </h3>
                   <div className="mt-2 text-sm text-green-400">
                     <p>
-                      Your business profile has been submitted successfully and is
+                      Your Organization profile has been submitted successfully and is
                       under review. Refreshing status...
                     </p>
                   </div>
@@ -280,7 +275,7 @@ const BusinessForm = ({
                 <input
                   type="file"
                   name="registration_document"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept=".pdf"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file && validateFile(file, 'Registration Document')) {
@@ -294,14 +289,14 @@ const BusinessForm = ({
                         registration_document: null,
                       }));
                     } else {
-                      e.target.value = ''; // Clear invalid file
+                      e.target.value = ''; // Clear invalid file 
                     }
                   }}
                   className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-gray-600 file:text-gray-200 hover:file:bg-gray-500"
                   required
                 />
                 <p className="text-xs text-gray-400 mt-2">
-                  Upload your business registration certificate, articles of incorporation, or business license (PDF, DOC, DOCX, JPG, JPEG, PNG - Max 10MB)
+                  Upload your organization registration certificate, articles of incorporation, or organization license (PDF only - Max 10MB)
                 </p>
               </div>
 
@@ -526,7 +521,7 @@ const BusinessForm = ({
                   <input
                     type="file"
                     name="account_holder_id_document"
-                    accept=".jpg,.jpeg,.png,.pdf"
+                    accept=".pdf"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file && validateFile(file, 'ID Document')) {
@@ -547,7 +542,7 @@ const BusinessForm = ({
                     required
                   />
                   <p className="text-xs text-gray-400 mt-2">
-                    Upload a clear photo or scan of your ID (JPG, PNG, PDF - Max 10MB)
+                    Upload a clear photo or scan of your ID (PDF only - Max 10MB)
                   </p>
                   {businessInfo.account_holder_id_document && (
                     <div className="bg-gray-700 border border-gray-600 mt-3 p-3 rounded-md">
@@ -587,7 +582,7 @@ const BusinessForm = ({
                 {isSubmitting && (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 )}
-                {isSubmitting ? "Submitting..." : "Submit Business Profile"}
+                {isSubmitting ? "Submitting..." : "Submit Organization Profile"}
               </button>
             </div>
           </div>

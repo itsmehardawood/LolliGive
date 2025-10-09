@@ -8,7 +8,7 @@ const DashboardFooter = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-300 space-y-2 sm:space-y-0">
           <span className="text-xs sm:text-sm">
-            © Lolligive 2025 Super Admin Dashboard. All rights reserved.
+            © 2025 Lolligive Dashboard. All rights reserved.
           </span>
         
         </div>
