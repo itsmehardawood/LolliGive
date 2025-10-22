@@ -45,7 +45,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     ]
   } = donationData || {};
 
-  const [step, setStep] = useState(1); // 1: Amount & Details, 2: Payment Gateway
+  const [step, setStep] = useState(1); // 1: Amount & Details, 2: Payment Method, 3: QR Code
   const [formData, setFormData] = useState({
     amount: '',
     customAmount: '',
@@ -117,6 +117,21 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
       ...prev,
       paymentMethod: methodId
     }));
+  };
+
+  const handleProceedToPayment = () => {
+    if (!formData.paymentMethod) {
+      setErrors({ paymentMethod: 'Please select a payment method' });
+      return;
+    }
+
+    // If debit or credit card, go to QR code step
+    if (formData.paymentMethod === 'debit_card' || formData.paymentMethod === 'credit_card') {
+      setStep(3);
+    } else {
+      // For other payment methods, proceed to final submission
+      handleFinalSubmit();
+    }
   };
 
   const handleFinalSubmit = async () => {
@@ -330,7 +345,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
               Proceed to Payment
             </button>
           </div>
-        ) : (
+        ) : step === 2 ? (
           <div>
             <h3 className="text-xl font-bold text-red-700 mb-6">
               Step 2: Payment Method
@@ -345,8 +360,8 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                   <span className="font-medium">${formData.amount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Purpose:</span>
-                  <span className="font-medium">
+                  <span >Purpose: </span>
+                  <span className="font-medium"> 
                     {
                       donationReasons.find(
                         (r) => r.value === formData.purpose_reason
@@ -396,6 +411,91 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
               )}
             </div>
 
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setStep(1)}
+                className="flex-1 bg-white text-black py-3 px-6 rounded-lg font-semibold hover:bg-gray-200 transition"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleProceedToPayment}
+                className="flex-1 bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-500 transition"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h3 className="text-xl font-bold text-red-700 mb-6">
+              Step 3: Scan QR Code
+            </h3>
+
+            {/* Donation Summary */}
+            <div className="bg-zinc-900 text-white rounded-lg p-4 mb-6">
+              <h4 className="font-semibold mb-2">Donation Summary</h4>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span>Amount:</span>
+                  <span className="font-medium">${formData.amount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Purpose:</span>
+                  <span className="font-medium">
+                    {
+                      donationReasons.find(
+                        (r) => r.value === formData.purpose_reason
+                      )?.label
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Donor:</span>
+                  <span className="font-medium">{formData.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Payment Method:</span>
+                  <span className="font-medium">
+                    {
+                      paymentMethods.find(
+                        (m) => m.id === formData.paymentMethod
+                      )?.name
+                    }
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* QR Code Display */}
+            <div className="mb-6 p-6 bg-zinc-900 rounded-lg border border-red-600">
+              <h4 className="text-lg font-semibold text-white mb-4 text-center">
+                Scan QR Code to Complete Payment
+              </h4>
+              <div className="flex flex-col items-center">
+                <div className="bg-white p-4 rounded-lg mb-4">
+                  <Image
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('https://auth.cardnest.io/LolliCash%20LLC/3349a8ac')}`}
+                    alt="Payment QR Code"
+                    width={200}
+                    height={200}
+                    className="w-48 h-48"
+                  />
+                </div>
+                <p className="text-sm text-gray-300 text-center mb-2">
+                  Scan this QR code with your mobile device to complete the payment
+                </p>
+                <a
+                  href="https://auth.cardnest.io/LolliCash%20LLC/3349a8ac"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-400 hover:text-red-300 text-sm underline"
+                >
+                  Or click here to open payment link
+                </a>
+              </div>
+            </div>
+
             {/* Status Messages */}
             {submitStatus && (
               <div className={`mb-6 p-4 rounded-lg ${
@@ -416,7 +516,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
 
             <div className="flex space-x-3">
               <button
-                onClick={() => setStep(1)}
+                onClick={() => setStep(2)}
                 disabled={isSubmitting}
                 className={`flex-1 py-3 px-6 rounded-lg font-semibold transition ${
                   isSubmitting 

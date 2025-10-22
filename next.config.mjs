@@ -18,6 +18,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "neurovise.ai",
       },
+      {
+        protocol: "https",
+        hostname: "api.qrserver.com",
+      },
     ],
   },
 };
