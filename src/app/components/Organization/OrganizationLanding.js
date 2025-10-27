@@ -7,6 +7,7 @@ import DonationSection from '../Organization/DonationSection';
 import Footer from '../Organization/Footer';
 import Navbar from '../Organization/Navbar';
 import VideoSection from './VideoSection';
+import DonationSectionHPP from './DonationSectionHPP';
 
 export default function OrganizationLanding({ organizationData, organizationSlug, orgId }) {
   // Extract organization-specific data
@@ -73,6 +74,8 @@ export default function OrganizationLanding({ organizationData, organizationSlug
   <section id="donate" className="py-8 sm:py-12 lg:py-5 bg-black  px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <DonationSection donationData={donationData} organizationSlug={organizationSlug} orgId={orgId} />
+        
+        {/* <DonationSectionHPP donationData={donationData} organizationSlug={organizationSlug} orgId={orgId} /> */}
           </div>
         </section>
 

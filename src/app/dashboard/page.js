@@ -78,6 +78,7 @@ function DashboardContent() {
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [businessName, setBusinessName] = useState(""); // New state for business name
+  const [selectedOrg, setSelectedOrg] = useState(null); // New state for selected organization (for leader role)
 
   // Add this function to your dashboard component
   const getUserDataFromStorage = () => {
@@ -735,6 +736,11 @@ function DashboardContent() {
 
   // Function to get header title
   const getHeaderTitle = () => {
+    // For leader role, show organization name if selected
+    if (userData?.role === "LEADER" && selectedOrg) {
+      return `${selectedOrg.name} - Dashboard`;
+    }
+    
     if (businessName) {
       return `Welcome ${businessName}`;
     }
@@ -817,6 +823,8 @@ function DashboardContent() {
         setActiveTab={handleTabChange}
         status={status}
         isLargeScreen={isLargeScreen}
+        selectedOrg={selectedOrg}
+        setSelectedOrg={setSelectedOrg}
       />
 
       {/* Main Content Area - Scrollable */}
