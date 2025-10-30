@@ -1,6 +1,5 @@
 // updated code for firebase
 
-
 "use client";
 
 import Link from "next/link";
@@ -9,11 +8,9 @@ import { useState, useEffect } from "react";
 import Select from "react-select";
 import countryCodes from "../lib/Counttycodes";
 import { auth } from "../lib/firebase";
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-} from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { apiFetch } from "../lib/api.js";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -55,16 +52,19 @@ export default function AdminLoginPage() {
             },
             "error-callback": (error) => {
               console.error("reCAPTCHA error:", error);
-            }
+            },
           }
         );
 
-        window.recaptchaVerifier.render().then((widgetId) => {
-          window.recaptchaWidgetId = widgetId;
-          // console.log("reCAPTCHA widget rendered:", widgetId);
-        }).catch((error) => {
-          console.error("reCAPTCHA render error:", error);
-        });
+        window.recaptchaVerifier
+          .render()
+          .then((widgetId) => {
+            window.recaptchaWidgetId = widgetId;
+            // console.log("reCAPTCHA widget rendered:", widgetId);
+          })
+          .catch((error) => {
+            console.error("reCAPTCHA render error:", error);
+          });
       } catch (error) {
         console.error("reCAPTCHA initialization error:", error);
       }
@@ -126,37 +126,38 @@ export default function AdminLoginPage() {
 
         // console.log("Sending admin login request:", JSON.stringify(requestBody, null, 2));
 
-        const response = await apiFetch(
-          "/login",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify(requestBody),
-          }
-        );
+        const response = await apiFetch("/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
 
         const data = await response.json();
         // console.log("Admin login API response:", data);
 
         if (!response.ok || !data.status) {
-          throw new Error(data.message || "Login failed. Please check your credentials.");
+          throw new Error(
+            data.message || "Login failed. Please check your credentials."
+          );
         }
 
         // Step 2: Store user data in localStorage immediately after successful API call
-     const userData = data; // store entire backend response (or replace with your desired structure)
-localStorage.setItem("userData", JSON.stringify(userData));
-setApiUserData(userData);
+        const userData = data; // store entire backend response (or replace with your desired structure)
+        localStorage.setItem("userData", JSON.stringify(userData));
+        setApiUserData(userData);
 
-// console.log("Admin user data stored in localStorage:", userData);
+        // console.log("Admin user data stored in localStorage:", userData);
 
         // Step 3: Always send Firebase OTP using phone number from backend response
         const phoneFromBackend = data.user?.phone_no || data.phone_no;
-        
+
         if (!phoneFromBackend) {
-          throw new Error("No phone number received from backend for OTP verification.");
+          throw new Error(
+            "No phone number received from backend for OTP verification."
+          );
         }
 
         // Store the phone number from backend for display and resend functionality
@@ -178,16 +179,19 @@ setApiUserData(userData);
         }
 
         const appVerifier = window.recaptchaVerifier;
-        const confirmation = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
-        
+        const confirmation = await signInWithPhoneNumber(
+          auth,
+          fullPhoneNumber,
+          appVerifier
+        );
+
         setConfirmationResult(confirmation);
         setIsOtpMode(true);
         setSuccess("Verification code sent to your phone.");
         // console.log("Firebase OTP sent successfully");
-
       } catch (err) {
         console.error("Error in admin login process:", err);
-        
+
         // Handle Firebase-specific errors
         if (err.code === "auth/invalid-phone-number") {
           setError("Invalid phone number format. Please check your number.");
@@ -207,71 +211,71 @@ setApiUserData(userData);
     }
   };
 
-const handleOtpVerification = async () => {
-  if (!confirmationResult) {
-    setOtpError("Verification session expired. Please try again.");
-    return;
-  }
-
-  setLoading(true);
-  setOtpError("");
-
-  try {
-    // Verify OTP with Firebase
-    const result = await confirmationResult.confirm(otp);
-    const user = result.user;
-
-    // console.log("Firebase OTP verified successfully:", user);
-
-    // Update localStorage with Firebase UID
-    if (apiUserData) {
-      const userData = {
-        ...apiUserData,
-        user: {
-          ...apiUserData.user,
-          firebaseUid: user.uid,
-          firebasePhone: user.phoneNumber,
-          otp_verified: true
-        }
-      };
-
-      localStorage.setItem("userData", JSON.stringify(userData));
-      setApiUserData(userData);
-
-      // console.log("Updated admin user data with Firebase info:", userData);
+  const handleOtpVerification = async () => {
+    if (!confirmationResult) {
+      setOtpError("Verification session expired. Please try again.");
+      return;
     }
 
-    setSuccess("Phone verified successfully! Checking admin access...");
+    setLoading(true);
+    setOtpError("");
 
-    // Only SUPER_ADMIN is allowed for admin panel
-    const userRole = apiUserData?.user?.role;
+    try {
+      // Verify OTP with Firebase
+      const result = await confirmationResult.confirm(otp);
+      const user = result.user;
 
-    if (userRole === "SUPER_ADMIN") {
-      setTimeout(() => {
-        router.push("/admin");
-      }, 1500);
-    } else {
-      setTimeout(() => {
-        setSuccess(""); // Clear success message
-        setOtpError("Invalid user. Only superadmin users are allowed to access the admin panel.");
-      }, 1500);
+      // console.log("Firebase OTP verified successfully:", user);
+
+      // Update localStorage with Firebase UID
+      if (apiUserData) {
+        const userData = {
+          ...apiUserData,
+          user: {
+            ...apiUserData.user,
+            firebaseUid: user.uid,
+            firebasePhone: user.phoneNumber,
+            otp_verified: true,
+          },
+        };
+
+        localStorage.setItem("userData", JSON.stringify(userData));
+        setApiUserData(userData);
+
+        // console.log("Updated admin user data with Firebase info:", userData);
+      }
+
+      setSuccess("Phone verified successfully! Checking admin access...");
+
+      // Only SUPER_ADMIN is allowed for admin panel
+      const userRole = apiUserData?.user?.role;
+
+      if (userRole === "SUPER_ADMIN") {
+        setTimeout(() => {
+          router.push("/admin");
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          setSuccess(""); // Clear success message
+          setOtpError(
+            "Invalid user. Only superadmin users are allowed to access the admin panel."
+          );
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("OTP verification error:", err);
+
+      if (err.code === "auth/invalid-verification-code") {
+        setOtpError("Invalid verification code. Please check and try again.");
+      } else if (err.code === "auth/code-expired") {
+        setOtpError("Verification code has expired. Please request a new one.");
+      } else {
+        setOtpError("Verification failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
-
-  } catch (err) {
-    console.error("OTP verification error:", err);
-
-    if (err.code === "auth/invalid-verification-code") {
-      setOtpError("Invalid verification code. Please check and try again.");
-    } else if (err.code === "auth/code-expired") {
-      setOtpError("Verification code has expired. Please request a new one.");
-    } else {
-      setOtpError("Verification failed. Please try again.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleBack = () => {
     setIsOtpMode(false);
@@ -304,11 +308,15 @@ const handleOtpVerification = async () => {
       }
 
       const appVerifier = window.recaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(auth, fullPhoneNumber, appVerifier);
-      
+      const confirmation = await signInWithPhoneNumber(
+        auth,
+        fullPhoneNumber,
+        appVerifier
+      );
+
       setConfirmationResult(confirmation);
       setSuccess("Verification code resent successfully!");
-      
+
       // console.log("Firebase OTP resent successfully");
     } catch (err) {
       console.error("Resend OTP error:", err);
@@ -347,14 +355,15 @@ const handleOtpVerification = async () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-25">
             <div className="flex-shrink-0">
-              <Link
-                href="/"
-                className="text-xl sm:text-2xl my-2 font-bold text-white drop-shadow-lg"
-              >
-                <video autoPlay loop muted playsInline width="70">
-                  <source src="https://dw1u598x1c0uz.cloudfront.net/CardNest%20Logo%20WebM%20version.webm" alt="CardNest Logo" />
-                  Your browser does not support the video tag.
-                </video>
+              <Link href="/" className="flex items-center">
+                <Image
+                  src="/images/lolligive.png" // replace with your logo path or URL
+                  alt="LolliGive Logo"
+                  width={50} // adjust size as needed
+                  height={70}
+                  className="h-auto w-auto"
+                  priority
+                />
               </Link>
             </div>
           </div>
@@ -446,7 +455,8 @@ const handleOtpVerification = async () => {
                       <div className="flex">
                         {showCountryCode && (
                           <div className="flex-shrink-0 flex items-center px-3 py-3 border border-gray-300 border-r-0 rounded-l-md shadow-sm bg-gray-50 text-sm text-gray-600">
-                            {getSelectedCountryInfo().flag} {formData.countryCode || "+1"}
+                            {getSelectedCountryInfo().flag}{" "}
+                            {formData.countryCode || "+1"}
                           </div>
                         )}
 
@@ -612,7 +622,7 @@ const handleOtpVerification = async () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-2 sm:space-y-3">
             <div className="flex items-center justify-center space-x-4 text-sm text-black/90 drop-shadow-lg">
-              <span>© CardNest Admin</span>
+              <span>© LolliGive Admin</span>
               <span>•</span>
               <a href="#" className="hover:text-white transition-colors">
                 Privacy & terms

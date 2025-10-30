@@ -34,7 +34,7 @@ const Sidebar = ({
   const [email, setEmail] = useState("");
   const [userRole, setUserRole] = useState("");
   const [expandedOrg, setExpandedOrg] = useState(null);
-  
+
   // Mock organizations data for leader role (replace with API call when ready)
   const [leaderOrganizations, setLeaderOrganizations] = useState([
     { id: 1, name: "Organization A", slug: "org-a" },
@@ -53,12 +53,18 @@ const Sidebar = ({
 
         if (userEmail) setEmail(userEmail);
         if (role) setUserRole(role);
-        
+
         // For testing: Uncomment to test leader role
         // setUserRole("LEADER");
-        
+
+
+
         // Set first org as default for leader
-        if (role === "LEADER" && leaderOrganizations.length > 0 && !selectedOrg) {
+        if ( 
+          role === "LEADER" &&
+          leaderOrganizations.length > 0 &&
+          !selectedOrg
+        ) {
           setSelectedOrg(leaderOrganizations[0]);
         }
       } catch (err) {
@@ -66,7 +72,7 @@ const Sidebar = ({
       }
     }
   }, []);
-  
+
   // Handle organization toggle
   const toggleOrg = (org) => {
     if (expandedOrg?.id === org.id) {
@@ -75,13 +81,13 @@ const Sidebar = ({
       setExpandedOrg(org);
     }
   };
-  
+
   // Handle tab selection for leader role
   const handleLeaderTabClick = (org, tabId) => {
     setSelectedOrg(org);
     setActiveTab(tabId);
     setExpandedOrg(null); // Collapse dropdown after selection
-  };
+  }; 
 
   const baseSidebarItems = [
     { id: "home", label: "Home", icon: <Home className="w-5 h-5" /> },
@@ -233,7 +239,9 @@ const Sidebar = ({
                       ? "bg-gray-800 border border-gray-600"
                       : "hover:bg-gray-800"
                   }`}
-                  style={{ color: activeTab === item.id ? "#ffffff" : "#ffffff" }}
+                  style={{
+                    color: activeTab === item.id ? "#ffffff" : "#ffffff",
+                  }}
                 >
                   {item.icon}
                   {sidebarOpen && (
@@ -257,7 +265,10 @@ const Sidebar = ({
           <>
             {userRole === "LEADER" && selectedOrg && (
               <div className="text-xs text-gray-400 bg-gray-800 px-3 py-2 rounded-lg text-center">
-                Viewing: <span className="font-medium text-blue-400">{selectedOrg.name}</span>
+                Viewing:{" "}
+                <span className="font-medium text-blue-400">
+                  {selectedOrg.name}
+                </span>
               </div>
             )}
             <div
@@ -272,7 +283,11 @@ const Sidebar = ({
             </div>
             <div className="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded-lg">
               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                {userRole === "LEADER" ? "L" : userRole === "ENTERPRISE_USER" ? "E" : "U"}
+                {userRole === "LEADER"
+                  ? "L"
+                  : userRole === "ENTERPRISE_USER"
+                  ? "E"
+                  : "U"}
               </div>
               <div className="min-w-0">
                 <p
@@ -296,7 +311,11 @@ const Sidebar = ({
         {!sidebarOpen && (
           <div className="flex justify-center relative group">
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-medium">
-              {userRole === "LEADER" ? "L" : userRole === "ENTERPRISE_USER" ? "E" : "U"}
+              {userRole === "LEADER"
+                ? "L"
+                : userRole === "ENTERPRISE_USER"
+                ? "E"
+                : "U"}
             </div>
             <div className="absolute left-10 top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
               {email || "Loading..."}
@@ -310,3 +329,6 @@ const Sidebar = ({
 };
 
 export default Sidebar;
+
+//  https://api.lolligive.com/api/transaction/show and  https://api.lolligive.com/api/organization-profile/get-by-org-key-id?org_key_id=9032433V31Q43796
+// These are two api endpoints used in the application we can utilise them as it is in case of leader board and organization profile. We need to return all org_key_ids associated with that specific leader in login API response in case of role will be leader.
