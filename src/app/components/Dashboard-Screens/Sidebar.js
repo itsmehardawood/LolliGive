@@ -11,7 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   History,
-  Receipt,
+  Receipt,  
   Settings,
   Building2,
   Globe,

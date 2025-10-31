@@ -44,6 +44,7 @@ const NavigationSidebar = ({
     { id: "home", label: "Home", icon: Home },
     { id: "enterprise", label: "Organization Approval", icon: Building2 },
     { id: "transactions", label: "Transaction History", icon: History },
+    { id: "reports", label: "Reports & Analytics", icon: BarChart2 },
     //  { id: "EnterpriseUsers", label: "Enterprise Users", icon: Building2 },
     // { id: "pricing", label: "Pricing", icon: DollarSign },
     // { id: "billing", label: "Billing Logs", icon: Receipt },

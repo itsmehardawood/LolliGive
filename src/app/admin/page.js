@@ -16,6 +16,7 @@ import NavigationSidebar from '../components/Super Admin/General/AdminNav';
 import DashboardFooter from '../components/Super Admin/General/AdminFooter';
 import PageHeader from '../components/Super Admin/General/AdminHeader';
 import TransactionFilter from '../components/Super Admin/TransactionsAll';
+import AdminReports from '../components/Super Admin/Reports/AdminReports';
 
 
 const AdminDashboard = () => {
@@ -116,6 +117,8 @@ const AdminDashboard = () => {
         return <BusinessApprovalSectionUpdated />;
       case 'Transaction History':
         return <TransactionFilter />;
+      case 'Reports & Analytics':
+        return <AdminReports />;
       case 'Pricing':
         return <PricingSectionAdmin />;
       case 'User Activity':
