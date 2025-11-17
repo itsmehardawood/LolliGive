@@ -495,7 +495,7 @@ const BusinessForm = ({
                   >
                     <option value="">Select ID Type</option>
                     <option value="Passport">Passport</option>
-                    <option value="Driver's License">Drivers License</option>
+                    <option value="Drivers License">Drivers License</option>
                     <option value="National ID">National ID</option>
                     <option value="SSN">Social Security Number</option>
                   </select>

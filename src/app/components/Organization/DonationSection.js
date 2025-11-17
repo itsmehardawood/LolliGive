@@ -23,25 +23,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
         name: "Debit Card", 
         icon: "💳",
         description: "Secure payment with your debit card"
-      },
-      // { 
-      //   id: "credit_card", 
-      //   name: "Credit Card", 
-      //   icon: "💳",
-      //   description: "Pay with Visa, MasterCard, or American Express"
-      // },
-      // { 
-      //   id: "bank_account", 
-      //   name: "Bank Account", 
-      //   icon: "🏦",
-      //   description: "Direct transfer from your bank account"
-      // },
-      // { 
-      //   id: "paypal", 
-      //   name: "PayPal", 
-      //   icon: "💰",
-      //   description: "Pay securely with your PayPal account"
-      // }
+      }
     ]
   } = donationData || {};
 
@@ -52,7 +34,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     name: '',
     purpose_reason: '',
     comment: '',
-    paymentMethod: ''
+    paymentMethod:  'debit_card' //always debit card
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -343,7 +325,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
 
             {/* Donation Summary */}
             <div className="bg-zinc-900 text-white rounded-lg p-4 mb-6">
-              <h4 className="font-semibold mb-2">Donation Summary</h4>
+              <h4 className="font-semibold mb-2">Giving Summary For Today</h4>
               <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span>Amount:</span>
@@ -360,7 +342,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Donor:</span>
+                  <span>Name:</span>
                   <span className="font-medium">{formData.name}</span>
                 </div>
               </div>
@@ -369,7 +351,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
             {/* Payment Methods */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-white mb-3">
-                Choose Payment Method *
+                For security reasons, Debit Card ONLY is required*
               </label>
               <div className="space-y-3">
                 {paymentMethods.map((method) => (
@@ -441,9 +423,9 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                     Processing...
                   </div>
                 ) : submitStatus === 'success' ? (
-                  'Donation Completed ✓'
+                  'Payment Completed ✓'
                 ) : (
-                  'Complete Donation'
+                  'Complete Payment'
                 )}
               </button>
             </div>

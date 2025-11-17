@@ -1,5 +1,6 @@
 import React from 'react';
 import Hero from '../Organization/Hero';
+import VideoHero from '../Organization/VideoHero';
 import RedSection from '../Organization/RedSection';
 import ContactSection from '../Organization/ContactUs';
 import AboutUs from '../Organization/AboutUs';
@@ -13,6 +14,7 @@ export default function OrganizationLanding({ organizationData, organizationSlug
   // Extract organization-specific data
   const {
     organizationName = "Organization",
+    isVideo = false, // Flag to determine Hero or VideoHero
     heroData = {},
     welcomeData = {},
     aboutData = {},
@@ -48,7 +50,11 @@ export default function OrganizationLanding({ organizationData, organizationSlug
         {/* Hero Section */}
         <section id="home" className="py-2 sm:py-12 lg:py-0 lg:pb-10 md:pb-20 pt-5 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="w-full mx-auto max-w-7xl lg:max-w-screen-2xl">
-            <Hero heroData={heroData} />
+            {isVideo ? (
+              <VideoHero heroData={heroData} />
+            ) : (
+              <Hero heroData={heroData} />
+            )}
           </div>
         </section>
 

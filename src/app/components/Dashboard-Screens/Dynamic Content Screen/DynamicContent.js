@@ -47,20 +47,21 @@ export default function OrganizationRegistration() {
   const [isLoading, setIsLoading] = useState(true);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [userProfileStatus, setUserProfileStatus] = useState('loading'); // New state for profile status
+  const [isHeroVideo, setIsHeroVideo] = useState(false); // Toggle for hero image/video
   const [formData, setFormData] = useState({
     // Basic Info
     name: '',
     alias: '',
-    logo: '',
-    mainImage: '',
+    logo: null,
+    mainImage: null,
     
     // Content
     welcomeText: '',
     testimonyText: '',
     aboutUsText: '',
-    aboutUsImage: '',
+    aboutUsImage: null,
     donationMessage: '',
-    videoUrl: '',
+    videoUrl: null,
     
     // Contact Info
     contactInfo: {
@@ -239,25 +240,23 @@ export default function OrganizationRegistration() {
           if (formData.welcomeText.length > 300) {
             newErrors.welcomeText = 'Welcome text cannot exceed 300 characters';
           }
-        if (!formData.logo.trim()) newErrors.logo = 'Logo URL is required';
-        if (formData.logo && !isValidUrl(formData.logo)) newErrors.logo = 'Please enter a valid logo URL';
-        if (!formData.mainImage.trim()) newErrors.mainImage = 'Main image URL is required';
-        if (formData.mainImage && !isValidUrl(formData.mainImage)) newErrors.mainImage = 'Please enter a valid main image URL';
+        if (!formData.logo) newErrors.logo = 'Organization logo is required';
+        if (isHeroVideo) {
+          if (!formData.mainImage) newErrors.mainImage = 'Hero video is required';
+        } else {
+          if (!formData.mainImage) newErrors.mainImage = 'Hero image is required';
+        }
         break;
       case 2:
         if (!formData.testimonyText.trim()) newErrors.testimonyText = 'Testimony text is required';
         if (!formData.donationMessage.trim()) newErrors.donationMessage = 'Donation message is required';
-        if (formData.videoUrl && !isValidUrl(formData.videoUrl)) {
-          newErrors.videoUrl = 'Please enter a valid URL';
-        }
         break;
       case 3:
         if (!formData.aboutUsText.trim()) newErrors.aboutUsText = 'About us text is required';
         if (formData.aboutUsText.length < 50) {
           newErrors.aboutUsText = 'About us text should be at least 50 characters';
         }
-        if (!formData.aboutUsImage.trim()) newErrors.aboutUsImage = 'About us image URL is required';
-        if (formData.aboutUsImage && !isValidUrl(formData.aboutUsImage)) newErrors.aboutUsImage = 'Please enter a valid about us image URL';
+        if (!formData.aboutUsImage) newErrors.aboutUsImage = 'About us image is required';
         break;
       case 4: 
         if (!formData.contactInfo.address.trim()) newErrors.address = 'Address is required';
@@ -290,18 +289,60 @@ export default function OrganizationRegistration() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, files } = e.target;
     
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Update image previews for URL inputs
-    if (name === 'logo' && value && isValidUrl(value)) setLogoPreview(value);
-    if (name === 'mainImage' && value && isValidUrl(value)) setMainImagePreview(value);
-    if (name === 'aboutUsImage' && value && isValidUrl(value)) setAboutUsImagePreview(value);
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    if (type === 'file') {
+      const file = files[0];
+      if (!file) return;
+      
+      // Validate file type
+      if (name === 'logo' || name === 'aboutUsImage') {
+        const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!validImageTypes.includes(file.type)) {
+          setErrors(prev => ({ ...prev, [name]: 'Only PNG and JPG images are allowed' }));
+          return;
+        }
+      } else if (name === 'mainImage') {
+        // mainImage can be either image or video based on isHeroVideo toggle
+        if (isHeroVideo) {
+          if (file.type !== 'video/mp4') {
+            setErrors(prev => ({ ...prev, [name]: 'Only MP4 videos are allowed' }));
+            return;
+          }
+        } else {
+          const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+          if (!validImageTypes.includes(file.type)) {
+            setErrors(prev => ({ ...prev, [name]: 'Only PNG and JPG images are allowed' }));
+            return;
+          }
+        }
+      } else if (name === 'videoUrl') {
+        if (file.type !== 'video/mp4') {
+          setErrors(prev => ({ ...prev, [name]: 'Only MP4 videos are allowed' }));
+          return;
+        }
+      }
+      
+      // Set file in form data
+      setFormData(prev => ({ ...prev, [name]: file }));
+      
+      // Create preview
+      const previewUrl = URL.createObjectURL(file);
+      if (name === 'logo') setLogoPreview(previewUrl);
+      if (name === 'mainImage') setMainImagePreview(previewUrl);
+      if (name === 'aboutUsImage') setAboutUsImagePreview(previewUrl);
+      
+      // Clear error
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
     }
   };
 
@@ -383,12 +424,15 @@ export default function OrganizationRegistration() {
       submitData.append('testimonyText', cleanedData.testimonyText);
       submitData.append('aboutUsText', cleanedData.aboutUsText);
       submitData.append('donationMessage', cleanedData.donationMessage);
-      if (cleanedData.videoUrl) submitData.append('videoUrl', cleanedData.videoUrl);
       
-      // Add image URLs
-      submitData.append('logo', cleanedData.logo);
-      submitData.append('mainImage', cleanedData.mainImage);
-      submitData.append('aboutUsImage', cleanedData.aboutUsImage);
+      // Add isVideo flag
+      submitData.append('isVideo', isHeroVideo);
+      
+      // Add file uploads
+      if (cleanedData.logo) submitData.append('logo', cleanedData.logo);
+      if (cleanedData.mainImage) submitData.append('mainImage', cleanedData.mainImage);
+      if (cleanedData.aboutUsImage) submitData.append('aboutUsImage', cleanedData.aboutUsImage);
+      if (cleanedData.videoUrl) submitData.append('videoUrl', cleanedData.videoUrl);
       
       // Add contact info in the format backend expects: contactInfo[0][field]
       submitData.append('contactInfo[0][address]', cleanedData.contactInfo.address);
@@ -648,15 +692,16 @@ export default function OrganizationRegistration() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <InputField
-                      label="Organization Logo URL"
+                      label="Organization Logo"
                       name="logo"
-                      type="url"
+                      type="file"
                       required
-                      placeholder="https://example.com/logo.png"
                       formData={formData}
                       handleInputChange={handleInputChange}
                       errors={errors}
+                      accept="image/png,image/jpeg,image/jpg"
                     />
+                    <p className="text-gray-400 text-xs mt-1">PNG or JPG only</p>
                     {logoPreview && (
                       <div className="mt-3">
                         <p className="text-gray-300 text-sm mb-2">Logo Preview:</p>
@@ -679,19 +724,59 @@ export default function OrganizationRegistration() {
                   </div>
 
                   <div>
+                    {/* Toggle for Image/Video Hero */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-300 mb-3">
+                        Hero Section Type <span className="text-red-400">*</span>
+                      </label>
+                      <div className="flex items-center gap-4 bg-gray-800 p-3 rounded-lg border border-gray-600">
+                        <button
+                          type="button"
+                          onClick={() => setIsHeroVideo(false)}
+                          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                            !isHeroVideo 
+                              ? 'bg-blue-600 text-white shadow-lg' 
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          <svg className="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Image
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsHeroVideo(true)}
+                          className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                            isHeroVideo 
+                              ? 'bg-blue-600 text-white shadow-lg' 
+                              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          }`}
+                        >
+                          <svg className="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Video
+                        </button>
+                      </div>
+                    </div>
+
                     <InputField
-                      label="Main/Hero Image URL"
+                      label={isHeroVideo ? "Hero Video" : "Hero Image"}
                       name="mainImage"
-                      type="url"
+                      type="file"
                       required
-                      placeholder="https://example.com/hero-image.jpg"
                       formData={formData}
                       handleInputChange={handleInputChange}
                       errors={errors}
+                      accept={isHeroVideo ? "video/mp4" : "image/png,image/jpeg,image/jpg"}
                     />
-                    {mainImagePreview && (
+                    <p className="text-gray-400 text-xs mt-1">
+                      {isHeroVideo ? 'MP4 only' : 'PNG or JPG only'}
+                    </p>
+                    {mainImagePreview && !isHeroVideo && (
                       <div className="mt-3">
-                        <p className="text-gray-300 text-sm mb-2">Main Image Preview:</p>
+                        <p className="text-gray-300 text-sm mb-2">Hero Image Preview:</p>
                         <div className="w-full h-32 border-2 border-gray-600 rounded-lg overflow-hidden bg-gray-700">
                           <img
                             src={mainImagePreview} 
@@ -705,6 +790,22 @@ export default function OrganizationRegistration() {
                           <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm" style={{display: 'none'}}>
                             Preview not available
                           </div>
+                        </div>
+                      </div>
+                    )}
+                    {formData.mainImage && isHeroVideo && (
+                      <div className="mt-3">
+                        <p className="text-gray-300 text-sm mb-2">Video Selected:</p>
+                        <div className="bg-gray-700 border border-gray-600 rounded-lg p-3">
+                          <p className="text-white text-sm flex items-center gap-2">
+                            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            {formData.mainImage.name}
+                          </p>
+                          <p className="text-gray-400 text-xs mt-1">
+                            {(formData.mainImage.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
                         </div>
                       </div>
                     )}
@@ -767,18 +868,45 @@ export default function OrganizationRegistration() {
                   )}
                 </div>
 
-                <InputField
-                  label="Video URL (Optional)"
-                  name="videoUrl"
-                  type="url"
-                  placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  errors={errors}
-                />
-                <p className="text-gray-400 text-sm -mt-2">
-                  Add a video to showcase your organization (YouTube, Vimeo, or direct link)
-                </p>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-300">
+                    Optional Video Upload
+                  </label>
+                  <input
+                    type="file"
+                    name="videoUrl"
+                    onChange={handleInputChange}
+                    accept="video/mp4"
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  />
+                  {errors.videoUrl && (
+                    <p className="text-red-400 text-sm flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {errors.videoUrl}
+                    </p>
+                  )}
+                  <p className="text-gray-400 text-sm">
+                    Add a video to showcase your organization (MP4 only)
+                  </p>
+                  {formData.videoUrl && (
+                    <div className="mt-3">
+                      <p className="text-gray-300 text-sm mb-2">Video Selected:</p>
+                      <div className="bg-gray-700 border border-gray-600 rounded-lg p-3">
+                        <p className="text-white text-sm flex items-center gap-2">
+                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          {formData.videoUrl.name}
+                        </p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          {(formData.videoUrl.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -818,15 +946,16 @@ export default function OrganizationRegistration() {
 
                 <div>
                   <InputField
-                    label="About Us Image URL"
+                    label="About Us Image"
                     name="aboutUsImage"
-                    type="url"
+                    type="file"
                     required
-                    placeholder="https://example.com/about-us.jpg"
                     formData={formData}
                     handleInputChange={handleInputChange}
                     errors={errors}
+                    accept="image/png,image/jpeg,image/jpg"
                   />
+                  <p className="text-gray-400 text-xs mt-1">PNG or JPG only</p>
                   {aboutUsImagePreview && (
                     <div className="mt-3">
                       <p className="text-gray-300 text-sm mb-2">About Us Image Preview:</p>
@@ -846,9 +975,6 @@ export default function OrganizationRegistration() {
                       </div>
                     </div>
                   )}
-                  <p className="text-gray-400 text-sm mt-2">
-                    Enter a URL for an image that represents your organizations work or team
-                  </p>
                 </div>
               </div>
             )}

@@ -30,10 +30,12 @@ export default function OrganizationPage() {
       // Map API response to component data structure
       const mappedData = {
         organizationName: apiData.name,
+        isVideo: apiData.isVideo || false, // Flag to determine if hero uses video or image
         heroData: {
           backgroundImage: apiData.mainImage || "https://cdn.pixabay.com/photo/2024/06/21/11/15/ai-generated-8844184_1280.jpg",
+          backgroundVideo: apiData.mainImage || "", // Will be video URL when isVideo is true
           title: `Welcome to ${apiData.name} - Making a difference in our community through faith and giving.`,
-          buttonText: "DONATE NOW | PAY NOW",
+          buttonText: "GIVE | DONATE NOW",
           buttonAction: () => {
             const element = document.querySelector('#donate');
             if (element) {
@@ -99,7 +101,7 @@ export default function OrganizationPage() {
           }
         },
         donationData: {
-          title: `Support ${apiData.name}`,
+          title: `Give ${apiData.name}`,
           subtitle: apiData.donationMessage || "Your generous donation helps us continue our important work in the community and spread God's love.",
           backgroundImage: "https://cdn.pixabay.com/photo/2017/08/06/12/52/money-2590776_1280.jpg",
           suggestedAmounts: [25, 50, 100, 250, 500],
