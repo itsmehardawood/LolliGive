@@ -48,8 +48,8 @@ export default function OrganizationLanding({ organizationData, organizationSlug
         </nav>
 
         {/* Hero Section */}
-        <section id="home" className="py-2 sm:py-12 lg:py-0 lg:pb-10 md:pb-20 pt-5 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="w-full mx-auto max-w-7xl lg:max-w-screen-2xl">
+        <section id="home" className={isVideo ? "bg-white" : "py-2 sm:py-12 lg:py-0 lg:pb-10 md:pb-20 pt-5 px-4 sm:px-6 lg:px-8 bg-white"}>
+          <div className={isVideo ? "w-full" : "w-full mx-auto max-w-7xl lg:max-w-screen-2xl"}>
             {isVideo ? (
               <VideoHero heroData={heroData} />
             ) : (

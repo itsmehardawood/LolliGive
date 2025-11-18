@@ -18,16 +18,14 @@ export default function VideoHero({ heroData }) {
           loop
           muted
           playsInline
-          className="object-cover w-full h-full sm:rounded-b-[120px] lg:rounded-b-[180px]"
+          className="object-cover w-full h-full"
         >
           Your browser does not support the video tag.
         </video>
-        {/* Optional overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/30 sm:rounded-b-[120px] lg:rounded-b-[180px]"></div>
       </div>
 
       {/* White Box Overlay */}
-      <div className="absolute inset-0 flex items-center justify-start sm:justify-start px-4 sm:px-8">
+      <div className="absolute inset-0 flex items-center justify-start sm:justify-start px-4 sm:px-4">
         <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-11 text-center shadow-lg max-w-xs sm:max-w-sm lg:max-w-lg w-full sm:w-auto">
           <p className="text-gray-600 mb-4 sm:mb-6 text-lg sm:text-xl lg:text-2xl text-center leading-relaxed">
             {title}

@@ -18,6 +18,29 @@ export default function OrganizationDisplay({ data, onEdit }) {
     </div>
   );
 
+  const VideoDisplay = ({ src, alt, className = "w-full h-32" }) => (
+    <div className={`border border-gray-700 rounded-lg overflow-hidden bg-gray-800 ${className}`}>
+      <video
+        src={src}
+        controls
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
+      >
+        Your browser does not support the video tag.
+      </video>
+      <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm" style={{display: 'none'}}>
+        Video not available
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen py-6 sm:py-8 md:py-12 px-3 sm:px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
@@ -67,11 +90,19 @@ export default function OrganizationDisplay({ data, onEdit }) {
         {/* Main Image & Welcome */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 md:mb-8">
           <div className="lg:col-span-2 bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-            <ImageDisplay 
-              src={data.mainImage} 
-              alt="Main Organization Image" 
-              className="w-full h-48 sm:h-56 md:h-64" 
-            />
+            {data.isVideo ? (
+              <VideoDisplay 
+                src={data.mainImage} 
+                alt="Main Organization Video" 
+                className="w-full h-48 sm:h-56 md:h-64" 
+              />
+            ) : (
+              <ImageDisplay 
+                src={data.mainImage} 
+                alt="Main Organization Image" 
+                className="w-full h-48 sm:h-56 md:h-64" 
+              />
+            )}
           </div>
           <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">Welcome</h2>
@@ -136,21 +167,19 @@ export default function OrganizationDisplay({ data, onEdit }) {
         {/* Video Section */}
         {data.videoUrl && (
           <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 mb-6 md:mb-8">
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">Media</h2>
-            <a
-              href={data.videoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm sm:text-base break-all"
-            >
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-              </svg>
-              <span className="break-all">{data.videoUrl}</span>
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-600/20 rounded-lg flex items-center justify-center border border-red-500/30">
+                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                </svg>
+              </div>
+              <h2 className="text-lg sm:text-xl font-semibold text-white">Media</h2>
+            </div>
+            <VideoDisplay 
+              src={data.videoUrl} 
+              alt="Organization Media Video" 
+              className="w-full h-64 sm:h-80 md:h-96" 
+            />
           </div>
         )}
 
