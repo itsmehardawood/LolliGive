@@ -7,6 +7,11 @@ export default function VideoSection({ videoData }) {
     return null;
   }
 
+  // Check if the URL is a YouTube URL
+  const isYouTubeUrl = (url) => {
+    return url.includes("youtube.com") || url.includes("youtu.be");
+  };
+
   // Convert YouTube watch URLs to embed format + autoplay/mute/loop/no controls
   const getEmbedUrl = (url) => {
     let videoId;
@@ -24,24 +29,37 @@ export default function VideoSection({ videoData }) {
     return `${url}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&rel=0`;
   };
 
-  const embedUrl = getEmbedUrl(videoUrl);
+  const isYouTube = isYouTubeUrl(videoUrl);
+  const embedUrl = isYouTube ? getEmbedUrl(videoUrl) : null;
 
   return (
     <section className="py-4 sm:py-12 lg:py-4 bg-white px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-      
-
         <div
           className="relative w-full"
           style={{ paddingBottom: "56.25%" /* 16:9 aspect ratio */ }}
         >
-          <iframe
-            className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
-            src={embedUrl}
-            title="Organization Video"
-            frameBorder="0"
-            allow="autoplay; fullscreen"
-          ></iframe>
+          {isYouTube ? (
+            <iframe
+              className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
+              src={embedUrl}
+              title="Organization Video"
+              frameBorder="0"
+              allow="autoplay; fullscreen"
+            ></iframe>
+          ) : (
+            <video
+              className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg object-cover"
+              src={videoUrl}
+              controls
+              autoPlay
+              loop
+              muted
+              playsInline
+            >
+              Your browser does not support the video tag.
+            </video>
+          )}
         </div>
       </div>
     </section>
