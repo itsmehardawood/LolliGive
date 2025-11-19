@@ -199,6 +199,9 @@ export default function OrganizationRegistration() {
   const handleEditOrganization = () => {
     // If we have existing data, populate the form with it
     if (existingData) {
+      // Set the isHeroVideo state based on existing data
+      setIsHeroVideo(existingData.isVideo || false);
+      
       setFormData({
         name: existingData.name || '',
         alias: existingData.alias || '',
@@ -229,43 +232,74 @@ export default function OrganizationRegistration() {
 
   const validateStep = (currentStep) => {
     const newErrors = {};
+    const isUpdate = existingData !== null;
     
     switch (currentStep) {
       case 1:
-        if (!formData.name.trim()) newErrors.name = 'Organization name is required';
-        if (!formData.welcomeText.trim()) newErrors.welcomeText = 'Welcome text is required';
-        if (formData.welcomeText.length < 30) {
+        if (!formData.name.trim()) {
+          newErrors.name = 'Organization name is required';
+        }
+        if (!formData.welcomeText.trim()) {
+          newErrors.welcomeText = 'Welcome text is required';
+        } else if (formData.welcomeText.length < 30) {
           newErrors.welcomeText = 'Welcome text should be at least 30 characters';
+        } else if (formData.welcomeText.length > 300) {
+          newErrors.welcomeText = 'Welcome text cannot exceed 300 characters';
         }
-          if (formData.welcomeText.length > 300) {
-            newErrors.welcomeText = 'Welcome text cannot exceed 300 characters';
-          }
-        if (!formData.logo) newErrors.logo = 'Organization logo is required';
+        
+        // Logo validation - required for new, optional for update if already exists
+        if (!formData.logo) {
+          newErrors.logo = 'Organization logo is required';
+        }
+        
+        // Main image/video validation
         if (isHeroVideo) {
-          if (!formData.mainImage) newErrors.mainImage = 'Hero video is required';
+          if (!formData.mainImage) {
+            newErrors.mainImage = 'Hero video is required';
+          }
         } else {
-          if (!formData.mainImage) newErrors.mainImage = 'Hero image is required';
+          if (!formData.mainImage) {
+            newErrors.mainImage = 'Hero image is required';
+          }
         }
         break;
+        
       case 2:
-        if (!formData.testimonyText.trim()) newErrors.testimonyText = 'Testimony text is required';
-        if (!formData.donationMessage.trim()) newErrors.donationMessage = 'Donation message is required';
+        if (!formData.testimonyText.trim()) {
+          newErrors.testimonyText = 'Testimony text is required';
+        }
+        if (!formData.donationMessage.trim()) {
+          newErrors.donationMessage = 'Donation message is required';
+        }
         break;
+        
       case 3:
-        if (!formData.aboutUsText.trim()) newErrors.aboutUsText = 'About us text is required';
-        if (formData.aboutUsText.length < 50) {
+        if (!formData.aboutUsText.trim()) {
+          newErrors.aboutUsText = 'About us text is required';
+        } else if (formData.aboutUsText.length < 50) {
           newErrors.aboutUsText = 'About us text should be at least 50 characters';
         }
-        if (!formData.aboutUsImage) newErrors.aboutUsImage = 'About us image is required';
+        
+        if (!formData.aboutUsImage) {
+          newErrors.aboutUsImage = 'About us image is required';
+        }
         break;
+        
       case 4: 
-        if (!formData.contactInfo.address.trim()) newErrors.address = 'Address is required';
-        if (!formData.contactInfo.phone.trim()) newErrors.phone = 'Phone number is required';
-        if (!formData.contactInfo.email.trim()) newErrors.email = 'Email is required';
-        if (formData.contactInfo.email && !isValidEmail(formData.contactInfo.email)) {
+        if (!formData.contactInfo.address.trim()) {
+          newErrors.address = 'Address is required';
+        }
+        if (!formData.contactInfo.phone.trim()) {
+          newErrors.phone = 'Phone number is required';
+        }
+        if (!formData.contactInfo.email.trim()) {
+          newErrors.email = 'Email is required';
+        } else if (!isValidEmail(formData.contactInfo.email)) {
           newErrors.email = 'Please enter a valid email address';
         }
-        if (formData.purpose_reason.filter(reason => reason.trim()).length === 0) {
+        
+        const validReasons = formData.purpose_reason.filter(reason => reason.trim());
+        if (validReasons.length === 0) {
           newErrors.purpose_reason = 'At least one purpose/reason is required';
         }
         break;
@@ -396,9 +430,15 @@ export default function OrganizationRegistration() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateStep(step)) return;
+    // Validate current step before submitting
+    if (!validateStep(step)) {
+      // Scroll to top to show errors
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     
     setIsSubmitting(true);
+    setErrors({}); // Clear any previous errors
 
     try {
       // Clean up purpose_reason array by removing empty strings
@@ -493,12 +533,36 @@ export default function OrganizationRegistration() {
         }, 2000);
       } else {
         const errorData = await response.json();
-        // console.log('API Error Response:', errorData);
-        throw new Error(errorData.message || `${isUpdate ? 'Update' : 'Registration'} failed`);
+        console.error('API Error Response:', errorData);
+        
+        // Handle validation errors from backend
+        if (errorData.errors) {
+          const backendErrors = {};
+          Object.keys(errorData.errors).forEach(key => {
+            backendErrors[key] = Array.isArray(errorData.errors[key]) 
+              ? errorData.errors[key][0] 
+              : errorData.errors[key];
+          });
+          setErrors(backendErrors);
+          
+          // Show a general error message
+          setErrors(prev => ({ 
+            ...prev, 
+            submit: 'Please check the form for errors and try again.' 
+          }));
+        } else {
+          throw new Error(errorData.message || `${isUpdate ? 'Update' : 'Registration'} failed`);
+        }
+        
+        // Scroll to top to show errors
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrors({ submit: error.message || `${isUpdate ? 'Update' : 'Registration'} failed. Please try again.` });
+      setErrors({ 
+        submit: error.message || `${existingData ? 'Update' : 'Registration'} failed. Please try again.` 
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
     }
@@ -584,6 +648,26 @@ export default function OrganizationRegistration() {
         </div>
 
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
+          {/* Validation Error Alert */}
+          {Object.keys(errors).length > 0 && (
+            <div className="bg-red-900/20 border-b border-red-500/30 p-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-red-300 font-semibold text-sm mb-1">Please fix the following errors:</h3>
+                  <ul className="list-disc list-inside text-red-200 text-xs space-y-1">
+                    {Object.entries(errors).map(([key, value]) => {
+                      if (key === 'submit') return null; // Don't show submit error in the list
+                      return <li key={key}>{value}</li>;
+                    })}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Progress Bar */}
           <div className="p-6 bg-gray-800/30 border-b border-gray-700">
             <div className="flex items-center justify-between mb-4">
@@ -1093,7 +1177,7 @@ export default function OrganizationRegistration() {
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      🎉 Success! Your organization has been {existingData ? 'updated' : 'registered'} successfully. 
+                     Success! Your organization has been {existingData ? 'updated' : 'registered'} successfully. 
                       {existingData ? ' Returning to view...' : ' Redirecting to dashboard...'}
                     </p>
                   </div>

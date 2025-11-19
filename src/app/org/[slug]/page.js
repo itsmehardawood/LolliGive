@@ -101,7 +101,7 @@ export default function OrganizationPage() {
           }
         },
         donationData: {
-          title: `Give ${apiData.name}`,
+          title: `Give to ${apiData.name}`,
           subtitle: apiData.donationMessage || "Your generous donation helps us continue our important work in the community and spread God's love.",
           backgroundImage: "https://cdn.pixabay.com/photo/2017/08/06/12/52/money-2590776_1280.jpg",
           suggestedAmounts: [25, 50, 100, 250, 500],

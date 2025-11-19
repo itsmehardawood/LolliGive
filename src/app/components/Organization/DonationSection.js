@@ -118,35 +118,53 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     setSubmitMessage('');
 
     try {
-      // Step 1: Get transaction token
-      console.log('Requesting transaction token...');
-      const tokenResponse = await fetch('https://api.lolligive.com/api/getTransactionToken', {
+      // Step 1: Get transaction token from our API
+      console.log('Requesting transaction token with amount:', formData.amount);
+      
+      const tokenResponse = await fetch('/api/elavon/get-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          amount: formData.amount
+        })
       });
 
       if (!tokenResponse.ok) {
-        throw new Error(`Failed to get transaction token. Status: ${tokenResponse.status}`);
+        const errorData = await tokenResponse.json();
+        throw new Error(errorData.error || 'Failed to get transaction token');
       }
 
-      const token = await tokenResponse.text(); // Token is returned directly as text
+      const { token } = await tokenResponse.json();
       console.log('Token received:', token);
 
       if (!token) {
         throw new Error('No transaction token received');
       }
 
-      // Step 2: Open payment URL with token in new tab
-      const paymentUrl = `https://api.demo.convergepay.com/hosted-payments/?ssl_txn_auth_token=${token}`;
-      console.log('Opening payment URL:', paymentUrl);
+      // Step 2: Fetch the payment page HTML
+      console.log('Fetching payment page HTML...');
       
-      const paymentWindow = window.open(paymentUrl, '_blank');
+      const paymentPageResponse = await fetch(`https://hpp.na.elavonpayments.com/hosted-payments/payment?transaction_token=${token}`);
+      
+      if (!paymentPageResponse.ok) {
+        throw new Error(`Failed to load payment page: ${paymentPageResponse.status}`);
+      }
+
+      const paymentHTML = await paymentPageResponse.text();
+      
+      // Step 3: Open the payment page in a new window with the HTML content
+      const paymentWindow = window.open('', '_blank');
       
       if (!paymentWindow) {
         throw new Error('Please allow popups for this site to complete the payment.');
       }
+
+      // Write the HTML to the new window
+      paymentWindow.document.open();
+      paymentWindow.document.write(paymentHTML);
+      paymentWindow.document.close();
 
       // Success message
       setSubmitStatus('success');
@@ -205,7 +223,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
         {step === 1 ? (
           <div>
             <h3 className="text-xl font-bold text-red-700 mb-6">
-              Step 1: Donation Details
+              Step 1: Giving Details
             </h3>
 
             {/* Amount Selection */}
@@ -269,7 +287,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
             {/* Purpose/Reason */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-white mb-2">
-                Donation Purpose *
+                Giving Purpose *
               </label>
               <select
                 name="purpose_reason"
@@ -277,7 +295,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-white rounded-lg bg-black text-white focus:outline-none focus:ring-2 focus:ring-red-600"
               >
-                <option value="" className="text-white bg-gray-900">Select donation purpose</option>
+                <option value="" className="text-white bg-gray-900">Select giving purpose</option>
                 {donationReasons.map((reason) => (
                   <option
                     key={reason.value}
@@ -351,7 +369,9 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
             {/* Payment Methods */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-white mb-3">
-                For security reasons, Debit Card ONLY is required*
+                <span className="inline-block bg-yellow-500/90 text-black font-bold px-3 py-1.5 rounded">
+                  **For Security Reasons ONLY DEBIT CARDS are allowed *
+                </span>
               </label>
               <div className="space-y-3">
                 {paymentMethods.map((method) => (
