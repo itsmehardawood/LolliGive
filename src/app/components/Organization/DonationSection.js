@@ -126,13 +126,14 @@ const handleFinalSubmit = async () => {
     // Step 1: Get transaction token from our API
     console.log('Requesting transaction token with amount:', formData.amount);
     
-    const tokenResponse = await fetch('/api/elavon/get-token', {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: JSON.stringify({ amount: formData.amount })
-    });
+const tokenResponse = await fetch('/api/elavon/get-token', {
+  method: 'POST',
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ amount: formData.amount })
+});
+
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
@@ -188,26 +189,7 @@ const handleFinalSubmit = async () => {
 
 
 
-  const resetForm = () => {
-    setStep(1);
-    setFormData({
-      amount: '',
-      customAmount: '',
-      name: '',
-      purpose_reason: '',
-      comment: '',
-      paymentMethod: ''
-    });
-    setErrors({});
-    setIsSubmitting(false);
-    setSubmitStatus(null);
-    setSubmitMessage('');
-    setShowPaymentOverlay(false);
-    if (paymentWindow && !paymentWindow.closed) {
-      paymentWindow.close();
-    }
-    setPaymentWindow(null);
-  };
+
 
   const handleClosePaymentWindow = () => {
     if (paymentWindow && !paymentWindow.closed) {
