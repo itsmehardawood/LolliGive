@@ -101,88 +101,148 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     }));
   };
 
-  const handleFinalSubmit = async () => {
-    if (!formData.paymentMethod) {
-      setErrors({ paymentMethod: 'Please select a payment method' });
-      return;
+  // const handleFinalSubmit = async () => {
+  //   if (!formData.paymentMethod) {
+  //     setErrors({ paymentMethod: 'Please select a payment method' });
+  //     return;
+  //   }
+
+  //   if (!orgId) {
+  //     setErrors({ general: 'Organization ID not found. Please try again.' });
+  //     return;
+  //   }
+
+  //   setIsSubmitting(true);
+  //   setErrors({});
+  //   setSubmitStatus(null);
+  //   setSubmitMessage('');
+
+  //   try {
+  //     // Step 1: Get transaction token from our API
+  //     console.log('Requesting transaction token with amount:', formData.amount);
+      
+  //     const tokenResponse = await fetch('/api/elavon/get-token', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         amount: formData.amount
+  //       })
+  //     });
+
+  //     if (!tokenResponse.ok) {
+  //       const errorData = await tokenResponse.json();
+  //       throw new Error(errorData.error || 'Failed to get transaction token');
+  //     }
+
+  //     const { token } = await tokenResponse.json();
+  //     console.log('Token received:', token);
+
+  //     if (!token) {
+  //       throw new Error('No transaction token received');
+  //     }
+
+  //     // Step 2: Fetch the payment page HTML
+  //     console.log('Fetching payment page HTML...');
+      
+  //     const paymentPageResponse = await fetch(`https://hpp.na.elavonpayments.com/hosted-payments/payment?transaction_token=${token}`);
+      
+  //     if (!paymentPageResponse.ok) {
+  //       throw new Error(`Failed to load payment page: ${paymentPageResponse.status}`);
+  //     }
+
+  //     const paymentHTML = await paymentPageResponse.text();
+      
+  //     // Step 3: Open the payment page in a new window with the HTML content
+  //     const paymentWindow = window.open('', '_blank');
+      
+  //     if (!paymentWindow) {
+  //       throw new Error('Please allow popups for this site to complete the payment.');
+  //     }
+
+  //     // Write the HTML to the new window
+  //     paymentWindow.document.open();
+  //     paymentWindow.document.write(paymentHTML);
+  //     paymentWindow.document.close();
+
+  //     // Success message
+  //     setSubmitStatus('success');
+  //     setSubmitMessage('Payment window opened. Please complete your payment in the new window.');
+      
+  //     // Reset form after a delay
+  //     setTimeout(() => {
+  //       resetForm();
+  //     }, 3000);
+
+  //   } catch (error) {
+  //     console.error('Error processing donation:', error);
+  //     setSubmitStatus('error');
+  //     setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+
+
+const handleFinalSubmit = async () => {
+  if (!formData.paymentMethod) {
+    setErrors({ paymentMethod: 'Please select a payment method' });
+    return;
+  }
+
+  if (!orgId) {
+    setErrors({ general: 'Organization ID not found. Please try again.' });
+    return;
+  }
+
+  setIsSubmitting(true);
+  setErrors({});
+  setSubmitStatus(null);
+  setSubmitMessage('');
+
+  try {
+    // Step 1: Get transaction token from our API
+    console.log('Requesting transaction token with amount:', formData.amount);
+    
+    const tokenResponse = await fetch('/api/elavon/get-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: formData.amount })
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json();
+      throw new Error(errorData.error || 'Failed to get transaction token');
     }
 
-    if (!orgId) {
-      setErrors({ general: 'Organization ID not found. Please try again.' });
-      return;
-    }
+    const { token } = await tokenResponse.json();
+    console.log('Token received:', token);
 
-    setIsSubmitting(true);
-    setErrors({});
-    setSubmitStatus(null);
-    setSubmitMessage('');
+    if (!token) throw new Error('No transaction token received');
 
-    try {
-      // Step 1: Get transaction token from our API
-      console.log('Requesting transaction token with amount:', formData.amount);
-      
-      const tokenResponse = await fetch('/api/elavon/get-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: formData.amount
-        })
-      });
+    // Step 2: Redirect user to Hosted Payment Page
+    window.open(
+      `https://hpp.na.elavonpayments.com/hosted-payments/payment?transaction_token=${token}`,
+      "_blank"
+    );
 
-      if (!tokenResponse.ok) {
-        const errorData = await tokenResponse.json();
-        throw new Error(errorData.error || 'Failed to get transaction token');
-      }
+    setSubmitStatus("success");
+    setSubmitMessage("Payment page opened. Complete payment in the new tab.");
+    
+    setTimeout(() => resetForm(), 3000);
 
-      const { token } = await tokenResponse.json();
-      console.log('Token received:', token);
+  } catch (error) {
+    console.error('Error processing donation:', error);
+    setSubmitStatus('error');
+    setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
-      if (!token) {
-        throw new Error('No transaction token received');
-      }
 
-      // Step 2: Fetch the payment page HTML
-      console.log('Fetching payment page HTML...');
-      
-      const paymentPageResponse = await fetch(`https://hpp.na.elavonpayments.com/hosted-payments/payment?transaction_token=${token}`);
-      
-      if (!paymentPageResponse.ok) {
-        throw new Error(`Failed to load payment page: ${paymentPageResponse.status}`);
-      }
-
-      const paymentHTML = await paymentPageResponse.text();
-      
-      // Step 3: Open the payment page in a new window with the HTML content
-      const paymentWindow = window.open('', '_blank');
-      
-      if (!paymentWindow) {
-        throw new Error('Please allow popups for this site to complete the payment.');
-      }
-
-      // Write the HTML to the new window
-      paymentWindow.document.open();
-      paymentWindow.document.write(paymentHTML);
-      paymentWindow.document.close();
-
-      // Success message
-      setSubmitStatus('success');
-      setSubmitMessage('Payment window opened. Please complete your payment in the new window.');
-      
-      // Reset form after a delay
-      setTimeout(() => {
-        resetForm();
-      }, 3000);
-
-    } catch (error) {
-      console.error('Error processing donation:', error);
-      setSubmitStatus('error');
-      setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const resetForm = () => {
     setStep(1);
