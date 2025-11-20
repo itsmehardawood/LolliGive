@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 
 export default function DonationSection({ donationData, organizationSlug, orgId }) {
@@ -40,6 +40,8 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
   const [submitMessage, setSubmitMessage] = useState('');
+  const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
+  const [paymentWindow, setPaymentWindow] = useState(null);
 
   const handleAmountSelect = (amount) => {
     setFormData(prev => ({
@@ -101,88 +103,6 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     }));
   };
 
-  // const handleFinalSubmit = async () => {
-  //   if (!formData.paymentMethod) {
-  //     setErrors({ paymentMethod: 'Please select a payment method' });
-  //     return;
-  //   }
-
-  //   if (!orgId) {
-  //     setErrors({ general: 'Organization ID not found. Please try again.' });
-  //     return;
-  //   }
-
-  //   setIsSubmitting(true);
-  //   setErrors({});
-  //   setSubmitStatus(null);
-  //   setSubmitMessage('');
-
-  //   try {
-  //     // Step 1: Get transaction token from our API
-  //     console.log('Requesting transaction token with amount:', formData.amount);
-      
-  //     const tokenResponse = await fetch('/api/elavon/get-token', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         amount: formData.amount
-  //       })
-  //     });
-
-  //     if (!tokenResponse.ok) {
-  //       const errorData = await tokenResponse.json();
-  //       throw new Error(errorData.error || 'Failed to get transaction token');
-  //     }
-
-  //     const { token } = await tokenResponse.json();
-  //     console.log('Token received:', token);
-
-  //     if (!token) {
-  //       throw new Error('No transaction token received');
-  //     }
-
-  //     // Step 2: Fetch the payment page HTML
-  //     console.log('Fetching payment page HTML...');
-      
-  //     const paymentPageResponse = await fetch(`https://hpp.na.elavonpayments.com/hosted-payments/payment?transaction_token=${token}`);
-      
-  //     if (!paymentPageResponse.ok) {
-  //       throw new Error(`Failed to load payment page: ${paymentPageResponse.status}`);
-  //     }
-
-  //     const paymentHTML = await paymentPageResponse.text();
-      
-  //     // Step 3: Open the payment page in a new window with the HTML content
-  //     const paymentWindow = window.open('', '_blank');
-      
-  //     if (!paymentWindow) {
-  //       throw new Error('Please allow popups for this site to complete the payment.');
-  //     }
-
-  //     // Write the HTML to the new window
-  //     paymentWindow.document.open();
-  //     paymentWindow.document.write(paymentHTML);
-  //     paymentWindow.document.close();
-
-  //     // Success message
-  //     setSubmitStatus('success');
-  //     setSubmitMessage('Payment window opened. Please complete your payment in the new window.');
-      
-  //     // Reset form after a delay
-  //     setTimeout(() => {
-  //       resetForm();
-  //     }, 3000);
-
-  //   } catch (error) {
-  //     console.error('Error processing donation:', error);
-  //     setSubmitStatus('error');
-  //     setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
 
 
 
@@ -208,7 +128,9 @@ const handleFinalSubmit = async () => {
     
     const tokenResponse = await fetch('/api/elavon/get-token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
       body: JSON.stringify({ amount: formData.amount })
     });
 
@@ -218,20 +140,42 @@ const handleFinalSubmit = async () => {
     }
 
     const { token } = await tokenResponse.json();
-    console.log('Token received:', token);
 
     if (!token) throw new Error('No transaction token received');
 
-    // Step 2: Redirect user to Hosted Payment Page
-    window.open(
-      `https://hpp.na.elavonpayments.com/hosted-payments/payment?transaction_token=${token}`,
-      "_blank"
-    );
+    // Step 2: Open payment page in centered popup window
+    const encodedToken = encodeURIComponent(token);
+    const paymentPageUrl = `https://api.convergepay.com/hosted-payments/?ssl_txn_auth_token=${encodedToken}`;
+    
+    // Calculate centered position
+    const width = 500;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    
+    const windowFeatures = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes,toolbar=no,menubar=no,location=yes`;
+    
+    const popup = window.open(paymentPageUrl, 'PaymentWindow', windowFeatures);
+    
+    if (!popup) {
+      throw new Error('Please allow popups for this site to complete the payment.');
+    }
+    
+    setPaymentWindow(popup);
+    setShowPaymentOverlay(true);
+    
+    // Monitor popup window
+    const checkWindow = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkWindow);
+        setShowPaymentOverlay(false);
+        setPaymentWindow(null);
+        // You might want to check payment status here
+      }
+    }, 500);
 
     setSubmitStatus("success");
-    setSubmitMessage("Payment page opened. Complete payment in the new tab.");
-    
-    setTimeout(() => resetForm(), 3000);
+    setSubmitMessage("Payment window opened. Complete payment in the popup window.");
 
   } catch (error) {
     console.error('Error processing donation:', error);
@@ -258,12 +202,60 @@ const handleFinalSubmit = async () => {
     setIsSubmitting(false);
     setSubmitStatus(null);
     setSubmitMessage('');
+    setShowPaymentOverlay(false);
+    if (paymentWindow && !paymentWindow.closed) {
+      paymentWindow.close();
+    }
+    setPaymentWindow(null);
   };
 
-  // Debug: log orgId when component renders
-  // console.log('DonationSection orgId:', orgId);
+  const handleClosePaymentWindow = () => {
+    if (paymentWindow && !paymentWindow.closed) {
+      paymentWindow.close();
+    }
+    setShowPaymentOverlay(false);
+    setPaymentWindow(null);
+  };
+
+ 
 
   return (
+    <>
+    {/* Payment Processing Overlay */}
+    {showPaymentOverlay && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-80 p-4">
+        <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-red-700 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Payment Window Open</h3>
+            <p className="text-gray-600 mb-4">
+              Please complete your payment in the popup window.
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> Do not close this page until your payment is complete.
+              </p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={handleClosePaymentWindow}
+              className="w-full bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 transition"
+            >
+              Cancel Payment
+            </button>
+            <p className="text-xs text-gray-500">
+              Window will close automatically when payment is complete
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
 
     <section className="py-0 sm:py-12 lg:py-16 bg-black px-4 sm:px-6 lg:px-8">
   <div className="max-w-7xl mx-auto">
@@ -515,7 +507,7 @@ const handleFinalSubmit = async () => {
     </div>
   </div>
 </section>
-
+</>
 
   );
 }
