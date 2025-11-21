@@ -351,7 +351,7 @@ const handleFinalSubmit = async () => {
     callbackInput.name = 'ssl_merchant_txn_url';
 
     // IMPORTANT: CHANGE THIS TO YOUR VERCEL DOMAIN
-    callbackInput.value = 'https://yourdomain.com/api/elavon/hpp-callback';
+    callbackInput.value = 'https://lolligive.com/api/elavon/hpp-callback';
 
     form.appendChild(callbackInput);
 

@@ -1,6 +1,13 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
+
+
+
 import { NextResponse } from 'next/server';
 
-export async function POST(request) {
+
+export async function POST(request) { 
   console.log('🟢 [API] get-token endpoint called');
   
   try {
