@@ -277,9 +277,9 @@ const handleFinalSubmit = async () => {
   setSubmitMessage('');
 
   try {
-    // 1️⃣ Request transaction token
-    console.log('📤 Requesting transaction token...');
-    const tokenResponse = await fetch('/api/elavon/get-token', {
+    // 1️⃣ Request transaction token from Laravel backend
+    console.log('📤 Requesting transaction token from Laravel API...');
+    const tokenResponse = await fetch('https://api.lolligive.com/api/getTransactionToken', {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: formData.amount })
@@ -290,10 +290,10 @@ const handleFinalSubmit = async () => {
       throw new Error(errorData.error || 'Failed to get transaction token');
     }
 
-    const { token } = await tokenResponse.json();
-    if (!token) throw new Error('No transaction token received');
+    const { ssl_txn_auth_token } = await tokenResponse.json();
+    if (!ssl_txn_auth_token) throw new Error('No transaction token received');
 
-    console.log('🎫 Transaction token received:', token.substring(0, 20) + '...');
+    console.log('🎫 Transaction token received:', ssl_txn_auth_token.substring(0, 20) + '...');
 
     // 2️⃣ Open popup window
     const width = 500, height = 650;
@@ -317,14 +317,14 @@ const handleFinalSubmit = async () => {
     const tokenInput = document.createElement('input');
     tokenInput.type = 'hidden';
     tokenInput.name = 'ssl_txn_auth_token';
-    tokenInput.value = token;
+    tokenInput.value = ssl_txn_auth_token;
     form.appendChild(tokenInput);
 
     // Callback URL (silent POST)
     const callbackInput = document.createElement('input');
     callbackInput.type = 'hidden';
     callbackInput.name = 'ssl_merchant_txn_url';
-    callbackInput.value = 'https://www.lolligive.com/api/elavon/hpp-callback';
+    callbackInput.value = 'http://localhost:3000/api/elavon/hpp-callback';
     form.appendChild(callbackInput);
 
     console.log('🔔 Callback URL set:', callbackInput.value);

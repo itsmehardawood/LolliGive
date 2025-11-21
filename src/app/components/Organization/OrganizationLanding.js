@@ -8,7 +8,7 @@ import DonationSection from '../Organization/DonationSection';
 import Footer from '../Organization/Footer';
 import Navbar from '../Organization/Navbar';
 import VideoSection from './VideoSection';
-import DonationSectionHPP from './DonationSectionHPP';
+// import DonationSectionHPP from './DonationSectionHPP';
 
 export default function OrganizationLanding({ organizationData, organizationSlug, orgId }) {
   // Extract organization-specific data
