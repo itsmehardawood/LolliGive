@@ -4,7 +4,7 @@ export default function DonationSuccessPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
-        <div className="bg-zinc-900 b   order border-gray-700 rounded-2xl shadow-2xl p-8 text-center">
+        <div className="bg-zinc-900 border border-gray-700 rounded-2xl shadow-2xl p-8 text-center">
           
           {/* Success Icon */}
           <div className="mb-6">
