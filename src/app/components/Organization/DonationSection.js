@@ -106,154 +106,6 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
 
 
 
-// const handleFinalSubmit = async () => {
-//   console.log('🚀 [DONATION] handleFinalSubmit called');
-//   console.log('📋 [DONATION] Form data:', {
-//     amount: formData.amount,
-//     name: formData.name,
-//     purpose_reason: formData.purpose_reason,
-//     paymentMethod: formData.paymentMethod,
-//     comment: formData.comment
-//   });
-//   console.log('🏢 [DONATION] Organization ID:', orgId);
-
-//   if (!formData.paymentMethod) {
-//     console.error('❌ [DONATION] Payment method not selected');
-//     setErrors({ paymentMethod: 'Please select a payment method' });
-//     return;
-//   }
-
-//   if (!orgId) {
-//     console.error('❌ [DONATION] Organization ID missing');
-//     setErrors({ general: 'Organization ID not found. Please try again.' });
-//     return;
-//   }
-
-//   setIsSubmitting(true);
-//   setErrors({});
-//   setSubmitStatus(null);
-//   setSubmitMessage('');
-
-//   try {
-//     console.log('📤 [DONATION] Requesting transaction token from /api/elavon/get-token');
-//     console.log('💰 [DONATION] Amount being sent:', formData.amount);
-
-//     // Step 1: Get transaction token from our API
-//     const tokenResponse = await fetch('/api/elavon/get-token', {
-//       method: 'POST',
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ amount: formData.amount })
-//     });
-    
-//     console.log('📥 [DONATION] Token response status:', tokenResponse.status);
-//     console.log('📥 [DONATION] Token response headers:', Object.fromEntries(tokenResponse.headers.entries()));
-
-//     if (!tokenResponse.ok) {
-//       const errorData = await tokenResponse.json();
-//       console.error('🔴 [DONATION] Server API returned error:', errorData);
-//       throw new Error(errorData.error || 'Failed to get transaction token');
-//     }
-
-//     const { token } = await tokenResponse.json();
-//     console.log('🎫 [DONATION] Transaction token received:', token ? `${token.substring(0, 20)}...` : 'null');
-
-//     if (!token) {
-//       console.error('❌ [DONATION] No transaction token in response');
-//       throw new Error('No transaction token received');
-//     }
-
-//     console.log('🪟 [DONATION] Creating payment popup window');
-    
-//     // Step 2: Create and submit HTML form to open payment page in popup
-//     // Calculate centered position for popup
-//     const width = 500;
-//     const height = 650;
-//     const left = (window.screen.width - width) / 2;
-//     const top = (window.screen.height - height) / 2;
-    
-//     const windowFeatures = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes,toolbar=no,menubar=no,location=yes`;
-//     console.log('🪟 [DONATION] Window features:', windowFeatures);
-    
-//     // Open popup window first
-//     const popup = window.open('', 'PaymentWindow', windowFeatures);
-    
-//     if (!popup) {
-//       console.error('❌ [DONATION] Popup blocked by browser');
-//       throw new Error('Please allow popups for this site to complete the payment.');
-//     }
-
-//     console.log('✅ [DONATION] Popup window opened successfully');
-//     console.log('📝 [DONATION] Creating HTML form for payment submission');
-
-//     // Create form element
-//     const form = document.createElement('form');
-//     form.method = 'POST';
-//     form.action = 'https://api.convergepay.com/hosted-payments';
-//     form.target = 'PaymentWindow';
-//     form.style.display = 'none';
-
-//     console.log('📝 [DONATION] Form configuration:', {
-//       method: form.method,
-//       action: form.action,
-//       target: form.target
-//     });
-
-//     // Create hidden input for token
-//     const tokenInput = document.createElement('input');
-//     tokenInput.type = 'hidden';
-//     tokenInput.name = 'ssl_txn_auth_token';
-//     tokenInput.value = token;
-
-//     console.log('🔐 [DONATION] Token input created:', {
-//       name: tokenInput.name,
-//       valueLength: tokenInput.value.length,
-//       valuePreview: `${tokenInput.value.substring(0, 20)}...`
-//     });
-
-//     // Append input to form
-//     form.appendChild(tokenInput);
-
-//     // Append form to body, submit, then remove
-//     document.body.appendChild(form);
-//     console.log('📤 [DONATION] Submitting form to Converge HPP');
-//     form.submit();
-//     document.body.removeChild(form);
-    
-//     console.log('✅ [DONATION] Form submitted and removed from DOM');
-    
-//     setPaymentWindow(popup);
-//     setShowPaymentOverlay(true);
-    
-//     // Monitor popup window
-//     const checkWindow = setInterval(() => {
-//       if (popup.closed) {
-//         console.log('🪟 [DONATION] Payment window closed by user');
-//         clearInterval(checkWindow);
-//         setShowPaymentOverlay(false);
-//         setPaymentWindow(null);
-//         // You might want to check payment status here
-//       }
-//     }, 500);
-
-//     setSubmitStatus("success");
-//     setSubmitMessage("Payment window opened. Complete payment in the popup window.");
-//     console.log('✅ [DONATION] Payment flow initiated successfully');
-
-//   } catch (error) {
-//     console.error('💥 [DONATION] Error processing donation:', error);
-//     console.error('💥 [DONATION] Error stack:', error.stack);
-//     setSubmitStatus('error');
-//     setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
-//   } finally {
-//     setIsSubmitting(false);
-//     console.log('🏁 [DONATION] handleFinalSubmit completed, isSubmitting set to false');
-//   }
-// };
-
-
-
 const handleFinalSubmit = async () => {
   console.log('🚀 [DONATION] handleFinalSubmit called');
   console.log('📋 [DONATION] Form data:', formData);
@@ -320,14 +172,52 @@ const handleFinalSubmit = async () => {
     tokenInput.value = ssl_txn_auth_token;
     form.appendChild(tokenInput);
 
-    // Callback URL (silent POST)
-    const callbackInput = document.createElement('input');
-    callbackInput.type = 'hidden';
-    callbackInput.name = 'ssl_merchant_txn_url';
-    callbackInput.value = 'http://localhost:3000/api/elavon/hpp-callback';
-    form.appendChild(callbackInput);
+    // Custom Fields for Converge HPP
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'name';
+    nameInput.value = formData.name;
+    form.appendChild(nameInput);
 
-    console.log('🔔 Callback URL set:', callbackInput.value);
+    const commentInput = document.createElement('input');
+    commentInput.type = 'hidden';
+    commentInput.name = 'comment';
+    commentInput.value = formData.comment;
+    form.appendChild(commentInput);
+
+    const orgIdInput = document.createElement('input');
+    orgIdInput.type = 'hidden';
+    orgIdInput.name = 'org_id';
+    orgIdInput.value = orgId;
+    form.appendChild(orgIdInput);
+
+    const purposeInput = document.createElement('input');
+    purposeInput.type = 'hidden';
+    purposeInput.name = 'purpose';
+    purposeInput.value = formData.purpose_reason;
+    form.appendChild(purposeInput);
+
+    const paymentMethodInput = document.createElement('input');
+    paymentMethodInput.type = 'hidden';
+    paymentMethodInput.name = 'paymentmethod';
+    paymentMethodInput.value = formData.paymentMethod;
+    form.appendChild(paymentMethodInput);
+
+    const amountInput = document.createElement('input');
+    amountInput.type = 'hidden';
+    amountInput.name = 'amount';
+    amountInput.value = formData.amount;
+    form.appendChild(amountInput);
+
+//   console.log("📨 SENDING TO CONVERGE HPP:", {
+//   ssl_txn_auth_token,
+//   name: formData.name,
+//   comment: formData.comment,
+//   org_id: orgId,
+//   purpose: formData.purpose_reason,
+//   paymentmethod: formData.paymentMethod,
+//   callback_url: 'http://localhost:3000/api/elavon/hpp-callback'
+// });
 
     // Append & submit
     document.body.appendChild(form);
