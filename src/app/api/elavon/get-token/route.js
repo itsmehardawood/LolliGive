@@ -1,121 +1,68 @@
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-export const runtime = "nodejs";
-
-
-
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-export async function POST(request) { 
-  console.log('🟢 [API] get-token endpoint called');
-  
+export async function POST(req) {
+  let body;
+
+  // Parse JSON body safely
   try {
-    // Parse and validate JSON body
-    let body;
-    try {
-      body = await request.json();
-    } catch (parseError) {
-      console.error('❌ [API] Invalid JSON in request body:', parseError.message);
-      return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
-        { status: 400 }
-      );
-    }
+    body = await req.json();
+  } catch (err) {
+    console.error('❌ Invalid JSON body:', err);
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
 
-    const { amount } = body;
+  const amount = parseFloat(body.amount);
+  if (!amount || isNaN(amount)) {
+    console.error('❌ Invalid or missing amount:', body.amount);
+    return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+  }
 
-    // Validate amount field
-    if (!amount || isNaN(parseFloat(amount))) {
-      console.error('❌ [API] Invalid or missing amount:', amount);
-      return NextResponse.json(
-        { error: 'Valid amount is required' },
-        { status: 400 }
-      );
-    }
+  // Fetch Converge credentials from environment
+  const ssl_account_id = process.env.ELAVON_SSL_ACCOUNT_ID;
+  const ssl_user_id = process.env.ELAVON_SSL_USER_ID;
+  const ssl_pin = process.env.ELAVON_SSL_PIN;
 
-    console.log('💰 [API] Amount received:', amount);
+  if (!ssl_account_id || !ssl_user_id || !ssl_pin) {
+    console.error('❌ Missing payment gateway credentials');
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+  }
 
-    const ssl_account_id = process.env.ELAVON_SSL_ACCOUNT_ID;
-    const ssl_user_id = process.env.ELAVON_SSL_USER_ID;
-    const ssl_pin = process.env.ELAVON_SSL_PIN;
+  // Prepare request body for Converge
+  const requestBody = new URLSearchParams({
+    ssl_amount: amount.toFixed(2),
+    ssl_user_id,
+    ssl_pin,
+    ssl_transaction_type: 'ccsale',
+    ssl_show_form: 'false',
+    ssl_account_id,
+    ssl_get_token: 'Y', // ensure token is returned
+  });
 
-    console.log('🔑 [API] Credentials check:', {
-      ssl_account_id: ssl_account_id ? `${ssl_account_id.substring(0, 5)}...` : 'MISSING',
-      ssl_user_id: ssl_user_id ? `${ssl_user_id.substring(0, 5)}...` : 'MISSING',
-      ssl_pin: ssl_pin ? '***' : 'MISSING',
-    });
-
-    if (!ssl_account_id || !ssl_user_id || !ssl_pin) {
-      console.error('❌ [API] Missing payment gateway credentials:', {
-        ssl_account_id: !!ssl_account_id,
-        ssl_user_id: !!ssl_user_id,
-        ssl_pin: !!ssl_pin,
-      });
-      return NextResponse.json(
-        { error: 'Payment gateway credentials not configured' },
-        { status: 500 }
-      );
-    }
-
-    const amountString = parseFloat(amount).toFixed(2);
-    console.log('💵 [API] Formatted amount:', amountString);
-
-    const requestBody = new URLSearchParams({
-      ssl_account_id,
-      ssl_user_id,
-      ssl_pin,
-      ssl_transaction_type: 'ccsale',
-      ssl_amount: amountString,
-      ssl_get_token: 'Y' 
-    });
-
-    console.log('📋 [API] Request body params:', {
-      ssl_account_id: ssl_account_id.substring(0, 5) + '...',
-      ssl_user_id: ssl_user_id.substring(0, 5) + '...',
-      ssl_pin: '***',
-      ssl_transaction_type: 'ccsale',
-      ssl_amount: amountString,
-      ssl_get_token: 'Y'
-    });
-
-    console.log('📤 [API] Sending request to Elavon API');
-    console.log('🌐 [API] URL: https://api.convergepay.com/hosted-payments/transaction_token');
-    console.log('📝 [API] Content-Type: application/x-www-form-urlencoded');
-
-    const response = await fetch('https://api.convergepay.com/hosted-payments/transaction_token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: requestBody.toString()
-    });
-
-    console.log('📥 [API] Elavon response status:', response.status);
-    console.log('📥 [API] Elavon response headers:', Object.fromEntries(response.headers.entries()));
-
-    const responseText = await response.text();
-    console.log('📄 [API] Elavon raw response:', responseText ? `${responseText.substring(0, 50)}...` : 'EMPTY');
-
-    if (!response.ok) {
-      console.error('🔴 [API] Elavon API returned error:', response.status, responseText);
-      throw new Error(`Failed to get transaction token: ${response.status}`);
-    }
-
-    if (!responseText) {
-      console.error('❌ [API] No transaction token received from payment gateway');
-      throw new Error('No transaction token received from payment gateway');
-    }
-
-    console.log('✅ [API] Successfully generated token');
-    console.log('🎫 [API] Token length:', responseText.length);
-
-    return NextResponse.json({ token: responseText });
-
-  } catch (error) {
-    console.error('💥 [API] Error in get-token API:', error);
-    console.error('💥 [API] Error stack:', error.stack);
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate payment token' },
-      { status: 500 }
+  try {
+    console.log('📤 Sending request to Converge...');
+    const response = await fetch(
+      'https://api.convergepay.com/hosted-payments/transaction_token',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: requestBody.toString(),
+      }
     );
+
+    const token = await response.text(); // Converge returns plain string
+
+    if (!token) {
+      console.error('❌ No token received from Converge');
+      return NextResponse.json({ error: 'No token received from Converge' }, { status: 502 });
+    }
+
+    console.log('✅ Token received:', token.substring(0, 10) + '...');
+    return NextResponse.json({ token });
+  } catch (err) {
+    console.error('💥 Error fetching token from Converge:', err);
+    return NextResponse.json({ error: 'Failed to fetch token from Converge' }, { status: 502 });
   }
 }

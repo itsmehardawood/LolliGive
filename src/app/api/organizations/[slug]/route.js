@@ -84,7 +84,7 @@ const mockOrganizations = {
 
 export async function GET(request, { params }) {
   try {
-    const { slug } = params;
+    const { slug } =  await params;
     
     // Try to fetch from external API first
     try {
