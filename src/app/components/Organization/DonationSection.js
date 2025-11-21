@@ -340,14 +340,54 @@ const handleFinalSubmit = async () => {
     setSubmitMessage("Payment window opened. Complete payment in the popup window.");
     console.log('✅ Form submitted to Converge HPP');
 
-    // 4️⃣ Monitor popup for close
+    // 4️⃣ Monitor popup for close and successful redirect
     const checkWindow = setInterval(() => {
-      if (popup.closed) {
-        console.log('🪟 Payment window closed by user');
-        clearInterval(checkWindow);
-        setShowPaymentOverlay(false);
-        setPaymentWindow(null);
-        setSubmitMessage("Payment window closed. Check your donation status in a moment.");
+      try {
+        // Check if popup is closed
+        if (popup.closed) {
+          console.log('🪟 Payment window closed by user');
+          clearInterval(checkWindow);
+          setShowPaymentOverlay(false);
+          setPaymentWindow(null);
+          setSubmitMessage("Payment window closed. Check your donation status in a moment.");
+          return;
+        }
+
+        // Try to access popup URL to detect redirect to lolligive.com
+        try {
+          const popupUrl = popup.location.href;
+          console.log('🔍 Checking popup URL:', popupUrl);
+          
+          // Check if redirected to success page
+          if (popupUrl.includes('lolligive.com')) {
+            console.log('✅ Payment successful - detected redirect to lolligive.com');
+            clearInterval(checkWindow);
+            popup.close();
+            setPaymentWindow(null);
+            setSubmitStatus("success");
+            setSubmitMessage("Payment completed successfully! Thank you for your donation.");
+            
+            // Auto-hide success message after 5 seconds
+            setTimeout(() => {
+              setShowPaymentOverlay(false);
+              // Optional: Reset form
+              setStep(1);
+              setFormData({
+                amount: '',
+                customAmount: '',
+                name: '',
+                purpose_reason: '',
+                comment: '',
+                paymentMethod: 'debit_card'
+              });
+            }, 5000);
+          }
+        } catch (e) {
+          // Cross-origin error - popup is still on payment gateway domain
+          // This is expected and normal, just continue monitoring
+        }
+      } catch (error) {
+        console.error('Error monitoring popup:', error);
       }
     }, 500);
 
@@ -384,32 +424,72 @@ const handleFinalSubmit = async () => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-80 p-4">
         <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
           <div className="mb-6">
-            <div className="mx-auto w-16 h-16 bg-red-700 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              submitStatus === 'success' && submitMessage.includes('completed successfully')
+                ? 'bg-green-600'
+                : 'bg-red-700'
+            }`}>
+              {submitStatus === 'success' && submitMessage.includes('completed successfully') ? (
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              )}
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Payment Window Open</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              {submitStatus === 'success' && submitMessage.includes('completed successfully')
+                ? 'Payment Successful!'
+                : 'Payment Window Open'}
+            </h3>
             <p className="text-gray-600 mb-4">
-              Please complete your payment in the popup window.
+              {submitMessage.includes('completed successfully')
+                ? 'Your donation has been processed successfully. Thank you for your generosity!'
+                : 'Please complete your payment in the popup window.'}
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Do not close this page until your payment is complete.
-              </p>
-            </div>
+            {!submitMessage.includes('completed successfully') && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> Do not close this page until your payment is complete.
+                </p>
+              </div>
+            )}
           </div>
           
           <div className="space-y-3">
-            <button
-              onClick={handleClosePaymentWindow}
-              className="w-full bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 transition"
-            >
-              Cancel Payment
-            </button>
-            <p className="text-xs text-gray-500">
-              Window will close automatically when payment is complete
-            </p>
+            {submitMessage.includes('completed successfully') ? (
+              <button
+                onClick={() => {
+                  setShowPaymentOverlay(false);
+                  setStep(1);
+                  setFormData({
+                    amount: '',
+                    customAmount: '',
+                    name: '',
+                    purpose_reason: '',
+                    comment: '',
+                    paymentMethod: 'debit_card'
+                  });
+                }}
+                className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                Make Another Donation
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleClosePaymentWindow}
+                  className="w-full bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 transition"
+                >
+                  Cancel Payment
+                </button>
+                <p className="text-xs text-gray-500">
+                  Window will close automatically when payment is complete
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
