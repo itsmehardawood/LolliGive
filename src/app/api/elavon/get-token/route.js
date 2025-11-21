@@ -11,7 +11,29 @@ export async function POST(request) {
   console.log('🟢 [API] get-token endpoint called');
   
   try {
-    const { amount } = await request.json();
+    // Parse and validate JSON body
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error('❌ [API] Invalid JSON in request body:', parseError.message);
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    const { amount } = body;
+
+    // Validate amount field
+    if (!amount || isNaN(parseFloat(amount))) {
+      console.error('❌ [API] Invalid or missing amount:', amount);
+      return NextResponse.json(
+        { error: 'Valid amount is required' },
+        { status: 400 }
+      );
+    }
+
     console.log('💰 [API] Amount received:', amount);
 
     const ssl_account_id = process.env.ELAVON_SSL_ACCOUNT_ID;

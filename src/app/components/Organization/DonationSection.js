@@ -324,7 +324,7 @@ const handleFinalSubmit = async () => {
     const callbackInput = document.createElement('input');
     callbackInput.type = 'hidden';
     callbackInput.name = 'ssl_merchant_txn_url';
-    callbackInput.value = 'https://lolligive.com/api/elavon/hpp-callback';
+    callbackInput.value = 'https://www.lolligive.com/api/elavon/hpp-callback';
     form.appendChild(callbackInput);
 
     console.log('🔔 Callback URL set:', callbackInput.value);
