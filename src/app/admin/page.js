@@ -17,6 +17,8 @@ import DashboardFooter from '../components/Super Admin/General/AdminFooter';
 import PageHeader from '../components/Super Admin/General/AdminHeader';
 import TransactionFilter from '../components/Super Admin/TransactionsAll';
 import AdminReports from '../components/Super Admin/Reports/AdminReports';
+import PaymentMethods from '../components/Super Admin/PaymentMethods/PaymentMethods';
+import WithdrawalRequests from '../components/Super Admin/WithdrawalRequests/WithdrawalRequests';
 
 
 const AdminDashboard = () => {
@@ -119,6 +121,10 @@ const AdminDashboard = () => {
         return <TransactionFilter />;
       case 'Reports & Analytics':
         return <AdminReports />;
+      case 'Payment Methods':
+        return <PaymentMethods />;
+      case 'Withdrawal Requests':
+        return <WithdrawalRequests />;
       case 'Pricing':
         return <PricingSectionAdmin />;
       case 'User Activity':

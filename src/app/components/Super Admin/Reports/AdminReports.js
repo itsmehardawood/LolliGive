@@ -33,14 +33,14 @@ export default function AdminReports() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/transaction/all`);
+      const response = await fetch('https://api.lolligive.com/api/transaction/all');
       const result = await response.json();
 
       if (!response.ok) {
         throw new Error(result.message || 'Failed to fetch transactions');
       }
 
-      if (result.success && result.data) {
+      if (result.success && result.data && result.data.transactions) {
         setTransactions(result.data.transactions);
       } else {
         throw new Error('Invalid response format');
@@ -55,7 +55,7 @@ export default function AdminReports() {
 
   // Get unique organizations
   const organizations = useMemo(() => {
-    const orgs = [...new Set(transactions.map(t => t.org_key_id))];
+    const orgs = [...new Set(transactions.map(t => t.org_id).filter(Boolean))];
     return orgs.sort();
   }, [transactions]);
 
@@ -65,7 +65,7 @@ export default function AdminReports() {
 
     // Filter by organization
     if (selectedOrg !== 'all') {
-      filtered = filtered.filter(t => t.org_key_id === selectedOrg);
+      filtered = filtered.filter(t => t.org_id === selectedOrg);
     }
 
     // Filter by date range
@@ -93,14 +93,16 @@ export default function AdminReports() {
 
   // Calculate summary statistics
   const stats = useMemo(() => {
+    const totalAmount = filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+    const totalFees = totalAmount * 0.03;
+    const totalReceived = totalAmount - totalFees;
+    
     return {
       totalTransactions: filteredTransactions.length,
-      totalAmount: filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0),
-      totalReceived: filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount_received), 0),
-      totalFees: filteredTransactions.reduce((sum, t) => sum + parseFloat(t.bank_fee), 0),
-      averageTransaction: filteredTransactions.length > 0 
-        ? filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0) / filteredTransactions.length 
-        : 0
+      totalAmount,
+      totalReceived,
+      totalFees,
+      averageTransaction: filteredTransactions.length > 0 ? totalAmount / filteredTransactions.length : 0
     };
   }, [filteredTransactions]);
 
@@ -114,9 +116,10 @@ export default function AdminReports() {
       if (!grouped[date]) {
         grouped[date] = { date, amount: 0, received: 0, fees: 0, count: 0 };
       }
-      grouped[date].amount += parseFloat(t.amount);
-      grouped[date].received += parseFloat(t.amount_received);
-      grouped[date].fees += parseFloat(t.bank_fee);
+      const amount = parseFloat(t.amount || 0);
+      grouped[date].amount += amount;
+      grouped[date].received += amount * 0.97;
+      grouped[date].fees += amount * 0.03;
       grouped[date].count += 1;
     });
 
@@ -134,11 +137,12 @@ export default function AdminReports() {
   const paymentMethodData = useMemo(() => {
     const methods = {};
     filteredTransactions.forEach((t) => {
-      const method = t.payment_method.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      if (!t.paymentmethod) return;
+      const method = t.paymentmethod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       if (!methods[method]) {
         methods[method] = { name: method, value: 0, count: 0 };
       }
-      methods[method].value += parseFloat(t.amount);
+      methods[method].value += parseFloat(t.amount || 0);
       methods[method].count += 1;
     });
 
@@ -160,7 +164,8 @@ export default function AdminReports() {
       if (!grouped[key]) {
         grouped[key] = { week: key, total: 0, count: 0 };
       }
-      grouped[key].total += parseFloat(t.amount_received);
+      const amount = parseFloat(t.amount || 0);
+      grouped[key].total += amount * 0.97;
       grouped[key].count += 1;
     });
 
@@ -178,16 +183,18 @@ export default function AdminReports() {
 
     const grouped = {};
     transactions.forEach((t) => {
-      if (!grouped[t.org_key_id]) {
-        grouped[t.org_key_id] = { 
-          org: t.org_key_id.slice(0, 8) + '...', 
-          fullOrg: t.org_key_id,
+      if (!t.org_id) return;
+      if (!grouped[t.org_id]) {
+        grouped[t.org_id] = { 
+          org: t.org_id.slice(0, 8) + '...', 
+          fullOrg: t.org_id,
           amount: 0, 
           count: 0 
         };
       }
-      grouped[t.org_key_id].amount += parseFloat(t.amount_received);
-      grouped[t.org_key_id].count += 1;
+      const amount = parseFloat(t.amount || 0);
+      grouped[t.org_id].amount += amount * 0.97;
+      grouped[t.org_id].count += 1;
     });
 
     return Object.values(grouped)

@@ -15,9 +15,12 @@ export default function TransactionFilter() {
   const fetchTransactions = async () => {
     try {
       const response = await fetch('https://api.lolligive.com/api/transaction/all');
-      const data = await response.json();
-      if (data.success) {
-        setTransactions(data.data.transactions);
+      const result = await response.json();
+      
+      if (result.success && result.data && result.data.transactions) {
+        setTransactions(result.data.transactions);
+      } else {
+        setTransactions([]);
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -26,12 +29,12 @@ export default function TransactionFilter() {
     }
   };
 
-  // Group transactions by org_key_id
+  // Group transactions by org_id
   const groupedTransactions = transactions.reduce((acc, txn) => {
-    if (!acc[txn.org_key_id]) {
-      acc[txn.org_key_id] = [];
+    if (!acc[txn.org_id]) {
+      acc[txn.org_id] = [];
     }
-    acc[txn.org_key_id].push(txn);
+    acc[txn.org_id].push(txn);
     return acc;
   }, {});
 
@@ -60,10 +63,15 @@ export default function TransactionFilter() {
   };
 
   const getOrgStats = (orgTransactions) => {
+    const totalAmount = orgTransactions.reduce((sum, txn) => sum + parseFloat(txn.amount || 0), 0);
+    // Calculate fees as 3% of total amount since fee data not in API
+    const totalFees = totalAmount * 0.03;
+    const totalReceived = totalAmount - totalFees;
+    
     return {
-      totalAmount: orgTransactions.reduce((sum, txn) => sum + parseFloat(txn.amount), 0),
-      totalReceived: orgTransactions.reduce((sum, txn) => sum + parseFloat(txn.amount_received), 0),
-      totalFees: orgTransactions.reduce((sum, txn) => sum + parseFloat(txn.bank_fee), 0),
+      totalAmount,
+      totalReceived,
+      totalFees,
       count: orgTransactions.length
     };
   };
@@ -183,24 +191,40 @@ export default function TransactionFilter() {
                                   <CreditCard className="w-4 h-4 text-purple-400" />
                                 </div>
                                 <div>
-                                  <h3 className="font-semibold text-white">{txn.name}</h3>
-                                  <p className="text-xs text-gray-500">{txn.tid}</p>
+                                  <h3 className="font-semibold text-white">{txn.name || 'N/A'}</h3>
+                                  <p className="text-xs text-gray-500">{txn.txn_id}</p>
                                 </div>
                               </div>
                               
                               <div className="space-y-2 ml-11">
-                                {txn.purpose_reason && (
+                                {txn.purpose && (
                                   <p className="text-sm text-gray-400">
                                     <span className="text-gray-500">Purpose:</span>{' '}
                                     <span className="text-gray-300">
-                                      {txn.purpose_reason.replace(/_/g, ' ')}
+                                      {txn.purpose.replace(/_/g, ' ')}
                                     </span>
                                   </p>
                                 )}
-                                {txn.comment && (
+                                {txn.comment && txn.comment !== 'N/A' && txn.comment !== 'DECLINED' && (
                                   <p className="text-sm text-gray-400">
                                     <span className="text-gray-500">Comment:</span>{' '}
                                     <span className="text-gray-300">{txn.comment}</span>
+                                  </p>
+                                )}
+                                {txn.paymentmethod && (
+                                  <p className="text-sm text-gray-400">
+                                    <span className="text-gray-500">Payment Method:</span>{' '}
+                                    <span className="text-gray-300">{txn.paymentmethod.replace(/_/g, ' ')}</span>
+                                  </p>
+                                )}
+                                {txn.status && (
+                                  <p className="text-sm text-gray-400">
+                                    <span className="text-gray-500">Status:</span>{' '}
+                                    <span className={`font-medium ${
+                                      txn.status === 'APPROVED' ? 'text-green-400' : 'text-red-400'
+                                    }`}>
+                                      {txn.status}
+                                    </span>
                                   </p>
                                 )}
                                 <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -212,18 +236,33 @@ export default function TransactionFilter() {
 
                             {/* Transaction Amounts */}
                             <div className="md:text-right">
-                              <div className="text-2xl font-bold text-white mb-1">
-                                {formatCurrency(txn.amount)}
+                              {txn.amount && (
+                                <>
+                                  <div className="text-2xl font-bold text-white mb-1">
+                                    {formatCurrency(parseFloat(txn.amount))}
+                                  </div>
+                                  <div className="text-sm text-green-400 font-medium mb-1">
+                                    Received: {formatCurrency(parseFloat(txn.amount) * 0.97)}
+                                  </div>
+                                  <div className="text-sm text-red-400 mb-2">
+                                    Fee (3%): {formatCurrency(parseFloat(txn.amount) * 0.03)}
+                                  </div>
+                                </>
+                              )}
+                              <div className="flex flex-col gap-1 items-end">
+                                {txn.paymentmethod && (
+                                  <span className="inline-block px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
+                                    {txn.paymentmethod.replace(/_/g, ' ')}
+                                  </span>
+                                )}
+                                <span className={`inline-block px-3 py-1 text-xs rounded-full ${
+                                  txn.is_approved === 1 
+                                    ? 'bg-green-900/30 text-green-400 border border-green-800' 
+                                    : 'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
+                                }`}>
+                                  {txn.is_approved === 1 ? 'Approved' : 'Pending'}
+                                </span>
                               </div>
-                              <div className="text-sm text-green-400 font-medium mb-1">
-                                Received: {formatCurrency(txn.amount_received)}
-                              </div>
-                              <div className="text-sm text-red-400 mb-2">
-                                Fee: {formatCurrency(txn.bank_fee)}
-                              </div>
-                              <span className="inline-block px-3 py-1 bg-gray-700 text-gray-300 text-xs rounded-full">
-                                {txn.payment_method.replace(/_/g, ' ')}
-                              </span>
                             </div>
                           </div>
                         </div>
