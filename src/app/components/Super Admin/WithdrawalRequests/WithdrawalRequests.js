@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Building2, Phone, Mail, User, MapPin, Hash, Calendar, CheckCircle, XCircle, Clock, Smartphone } from 'lucide-react';
+import { DollarSign, Building2, Phone, Mail, User, MapPin, Hash, Calendar, CheckCircle, XCircle, Clock, Smartphone, Search } from 'lucide-react';
 
 const WithdrawalRequests = () => {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -9,6 +9,16 @@ const WithdrawalRequests = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedOrg, setSelectedOrg] = useState('all');
   const [processingId, setProcessingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+
+  // Toast notification helper
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: '' });
+    }, 3000);
+  };
 
   useEffect(() => {
     fetchWithdrawals();
@@ -77,12 +87,12 @@ const WithdrawalRequests = () => {
         );
         
         // Show success message
-        alert(`Withdrawal ${newStatus === 1 ? 'approved' : 'rejected'} successfully!`);
+        showToast(`Withdrawal ${newStatus === 1 ? 'approved' : 'rejected'} successfully!`, 'success');
       } else {
         throw new Error(result.message || 'Failed to update withdrawal status');
       }
     } catch (err) {
-      alert('Error updating withdrawal status: ' + err.message);
+      showToast('Error updating withdrawal status: ' + err.message, 'error');
       console.error('Error updating withdrawal status:', err);
     } finally {
       setProcessingId(null);
@@ -109,11 +119,11 @@ const WithdrawalRequests = () => {
         };
       case 2:
         return {
-          label: 'Completed',
+          label: 'Rejected',
           icon: CheckCircle,
-          color: 'text-blue-400',
-          bgColor: 'bg-blue-900/30',
-          borderColor: 'border-blue-800'
+          color: 'text-white',
+          bgColor: 'bg-red-900/50',
+          borderColor: 'border-red-800'
         };
       case 3:
         return {
@@ -151,22 +161,38 @@ const WithdrawalRequests = () => {
     }).format(amount);
   };
 
-  // Get unique organizations
-  const organizations = [...new Set(withdrawals.map(w => w.org_id).filter(Boolean))].sort();
+  // Get unique organizations with their names
+  const organizations = [...new Map(
+    withdrawals
+      .filter(w => w.user?.business_profile?.organization_name)
+      .map(w => [
+        w.user.business_profile.organization_name,
+        {
+          name: w.user.business_profile.organization_name,
+          org_id: w.org_id
+        }
+      ])
+  ).values()].sort((a, b) => a.name.localeCompare(b.name));
 
   const filteredWithdrawals = withdrawals.filter(w => {
     const statusMatch = filterStatus === 'all' || w.withdrawal_status === parseInt(filterStatus);
-    const orgMatch = selectedOrg === 'all' || w.org_id === selectedOrg;
-    return statusMatch && orgMatch;
+    const orgName = w.user?.business_profile?.organization_name || '';
+    const orgMatch = selectedOrg === 'all' || orgName === selectedOrg;
+    const searchMatch = !searchQuery || orgName.toLowerCase().includes(searchQuery.toLowerCase());
+    return statusMatch && orgMatch && searchMatch;
   });
 
   const getStatusCount = (status) => {
     const filtered = selectedOrg === 'all' 
       ? withdrawals 
-      : withdrawals.filter(w => w.org_id === selectedOrg);
+      : withdrawals.filter(w => w.user?.business_profile?.organization_name === selectedOrg);
     
-    if (status === 'all') return filtered.length;
-    return filtered.filter(w => w.withdrawal_status === parseInt(status)).length;
+    const searchFiltered = !searchQuery
+      ? filtered
+      : filtered.filter(w => w.user?.business_profile?.organization_name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    if (status === 'all') return searchFiltered.length;
+    return searchFiltered.filter(w => w.withdrawal_status === parseInt(status)).length;
   };
 
   if (loading) {
@@ -187,10 +213,56 @@ const WithdrawalRequests = () => {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className={`px-6 py-4 rounded-lg shadow-lg border ${
+            toast.type === "success" 
+              ? "bg-green-900/90 border-green-700 text-green-100" 
+              : "bg-red-900/90 border-red-700 text-red-100"
+          }`}>
+            <div className="flex items-center gap-3">
+              {toast.type === "success" ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+              <p className="font-medium">{toast.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
         <h2 className="text-2xl font-bold text-white mb-2">Withdrawal Requests</h2>
         <p className="text-gray-400">Manage and track all withdrawal requests from organizations</p>
+      </div>
+
+      {/* Search Bar */}
+      <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by organization name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+            >
+              <span className="text-xl">&times;</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Organization Filter */}
@@ -206,10 +278,10 @@ const WithdrawalRequests = () => {
         >
           <option value="all">All Organizations ({withdrawals.length})</option>
           {organizations.map(org => {
-            const count = withdrawals.filter(w => w.org_id === org).length;
+            const count = withdrawals.filter(w => w.user?.business_profile?.organization_name === org.name).length;
             return (
-              <option key={org} value={org}>
-                {org} ({count})
+              <option key={org.name} value={org.name}>
+                {org.name} ({count})
               </option>
             );
           })}
@@ -224,8 +296,7 @@ const WithdrawalRequests = () => {
             { value: 'all', label: 'All' },
             { value: '0', label: 'Pending' },
             { value: '1', label: 'Approved' },
-            { value: '2', label: 'Completed' },
-            { value: '3', label: 'Rejected' }
+            { value: '2', label: 'Rejected' },
           ].map((filter) => (
             <button
               key={filter.value}
@@ -266,7 +337,10 @@ const WithdrawalRequests = () => {
                     <h3 className="text-2xl font-bold text-white">
                       {formatAmount(withdrawal.amount)}
                     </h3>
-                    <p className="text-sm text-gray-400">Organization: {withdrawal.org_id}</p>
+                    <p className="text-sm text-blue-400 font-medium">
+                      {withdrawal.user?.business_profile?.organization_name || 'Unknown Organization'}
+                    </p>
+                    <p className="text-xs text-gray-500">Org ID: {withdrawal.org_id}</p>
                   </div>
                 </div>
                 <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${statusInfo.bgColor} ${statusInfo.color} border ${statusInfo.borderColor}`}>

@@ -1,11 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Building2, Phone, Mail, User, MapPin, Hash, Calendar, Smartphone } from 'lucide-react';
+import { CreditCard, Building2, Phone, Mail, User, MapPin, Hash, Calendar, Smartphone, Search } from 'lucide-react';
 
 const PaymentMethods = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchPaymentMethods();
@@ -39,6 +40,16 @@ const PaymentMethods = () => {
     });
   };
 
+  // Filter payment methods based on search query
+  const filteredPaymentMethods = paymentMethods.filter((method) => {
+    if (!searchQuery) return true;
+    
+    const organizationName = method.user?.business_profile?.organization_name?.toLowerCase() || '';
+    const query = searchQuery.toLowerCase();
+    
+    return organizationName.includes(query);
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -63,12 +74,39 @@ const PaymentMethods = () => {
         <p className="text-gray-400">View all payment methods registered by organizations</p>
         <div className="mt-4 text-sm text-gray-500">
           Total Payment Methods: <span className="text-white font-semibold">{paymentMethods.length}</span>
+          {searchQuery && (
+            <span className="ml-4">
+              Filtered Results: <span className="text-white font-semibold">{filteredPaymentMethods.length}</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="bg-gray-900 rounded-lg border border-gray-800 p-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search by organization name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+            >
+              <span className="text-xl">&times;</span>
+            </button>
+          )}
         </div>
       </div>
 
       {/* Payment Methods Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {paymentMethods.map((method) => (
+        {filteredPaymentMethods.map((method) => (
           <div
             key={method.id}
             className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors"
@@ -85,7 +123,7 @@ const PaymentMethods = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-white">
-                    {method.isZelle ? 'Zelle' : 'Bank Account'}
+                    {method.user?.business_profile?.organization_name || 'Unknown Organization'}
                   </h3>
                   <p className="text-sm text-gray-400">Org ID: {method.org_id}</p>
                 </div>
@@ -183,11 +221,25 @@ const PaymentMethods = () => {
       </div>
 
       {/* Empty State */}
-      {paymentMethods.length === 0 && (
+      {filteredPaymentMethods.length === 0 && !loading && (
         <div className="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
           <CreditCard className="w-16 h-16 text-gray-700 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-white mb-2">No Payment Methods Found</h3>
-          <p className="text-gray-400">No organizations have added payment methods yet.</p>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            {searchQuery ? 'No Results Found' : 'No Payment Methods Found'}
+          </h3>
+          <p className="text-gray-400">
+            {searchQuery 
+              ? `No payment methods found matching "${searchQuery}"`
+              : 'No organizations have added payment methods yet.'}
+          </p>
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Clear Search
+            </button>
+          )}
         </div>
       )}
     </div>

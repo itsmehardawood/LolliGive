@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 export default function BankInfoForm() {
   const [paymentMethod, setPaymentMethod] = useState("bank"); // "bank" or "zelle"
+  const [zelleContactType, setZelleContactType] = useState("email"); // "email" or "phone"
   const [formData, setFormData] = useState({
     bankName: "",
     accountHolder: "",
@@ -23,6 +24,15 @@ export default function BankInfoForm() {
   const [withdrawalLoading, setWithdrawalLoading] = useState(false);
   const [withdrawalTransactions, setWithdrawalTransactions] = useState([]);
   const [fetchingTransactions, setFetchingTransactions] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "" });
+
+  // Toast notification helper
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "" });
+    }, 3000);
+  };
 
   // Fetch existing bank details on component mount
   useEffect(() => {
@@ -94,6 +104,10 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
             });
             // Set payment method based on isZelle value (1 = zelle, 0 = bank)
             setPaymentMethod(data.isZelle === 1 ? "zelle" : "bank");
+            // Set zelle contact type based on which field has data
+            if (data.isZelle === 1) {
+              setZelleContactType(data.zelle_email ? "email" : "phone");
+            }
             setSubmitted(true);
           }
         }
@@ -133,8 +147,8 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
         iban: paymentMethod === "bank" ? formData.iban : "",
         branch_address: paymentMethod === "bank" ? formData.branchAddress : "",
         zelle_name: paymentMethod === "zelle" ? formData.zelleName : "",
-        zelle_email: paymentMethod === "zelle" ? formData.zelleEmail : "",
-        zelle_phone: paymentMethod === "zelle" ? formData.zellePhone : "",
+        zelle_email: paymentMethod === "zelle" && zelleContactType === "email" ? formData.zelleEmail : null,
+        zelle_phone: paymentMethod === "zelle" && zelleContactType === "phone" ? formData.zellePhone : null,
         isZelle: paymentMethod === "zelle" ? 1 : 0,
       };
 
@@ -199,7 +213,7 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
         setWithdrawalAmount("");
         // Refresh withdrawal transactions list
         await fetchWithdrawalTransactions();
-        alert("Withdrawal request submitted successfully!");
+        showToast("Withdrawal request submitted successfully!", "success");
       }
     } catch (err) {
       console.error("Error submitting withdrawal:", err);
@@ -226,6 +240,30 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
 
   return (
     <section className="min-h-screen bg-black text-white p-4 sm:p-6 lg:p-8">
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className={`px-6 py-4 rounded-lg shadow-lg border ${
+            toast.type === "success" 
+              ? "bg-green-900/90 border-green-700 text-green-100" 
+              : "bg-red-900/90 border-red-700 text-red-100"
+          }`}>
+            <div className="flex items-center gap-3">
+              {toast.type === "success" ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+              <p className="font-medium">{toast.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8 border-b border-gray-800 pb-6">
@@ -339,14 +377,14 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
 
                   <div>
                     <label className="block text-sm font-medium mb-2 text-gray-200">
-                      IBAN
+                      Routing Number
                     </label>
                     <input
                       type="text"
                       name="iban"
                       value={formData.iban}
                       onChange={handleChange}
-                      placeholder="PK36SCBL0000001123456702"
+                      placeholder="021000021"
                       className="w-full px-4 py-2.5 rounded bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
                     />
                   </div>
@@ -387,34 +425,72 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-200">
-                    Zelle Email <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium mb-3 text-gray-200">
+                    Contact Method <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="email"
-                    name="zelleEmail"
-                    value={formData.zelleEmail}
-                    onChange={handleChange}
-                    placeholder="john@example.com"
-                    className="w-full px-4 py-2.5 rounded bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
-                    required
-                  />
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setZelleContactType("email");
+                        setFormData({ ...formData, zellePhone: "" });
+                      }}
+                      className={`py-3 px-4 rounded font-medium transition-all ${
+                        zelleContactType === "email"
+                          ? "bg-white text-black border-2 border-white"
+                          : "bg-gray-900 text-gray-400 border-2 border-gray-700 hover:border-gray-600"
+                      }`}
+                    >
+                      Email
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setZelleContactType("phone");
+                        setFormData({ ...formData, zelleEmail: "" });
+                      }}
+                      className={`py-3 px-4 rounded font-medium transition-all ${
+                        zelleContactType === "phone"
+                          ? "bg-white text-black border-2 border-white"
+                          : "bg-gray-900 text-gray-400 border-2 border-gray-700 hover:border-gray-600"
+                      }`}
+                    >
+                      Phone
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-gray-200">
-                    Zelle Phone <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    name="zellePhone"
-                    value={formData.zellePhone}
-                    onChange={handleChange}
-                    placeholder="(123) 456-7890"
-                    className="w-full px-4 py-2.5 rounded bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
-                    required
-                  />
-                </div>
+                {zelleContactType === "email" ? (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-200">
+                      Zelle Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="zelleEmail"
+                      value={formData.zelleEmail}
+                      onChange={handleChange}
+                      placeholder="john@example.com"
+                      className="w-full px-4 py-2.5 rounded bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-200">
+                      Zelle Phone <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="zellePhone"
+                      value={formData.zellePhone}
+                      onChange={handleChange}
+                      placeholder="(123) 456-7890"
+                      className="w-full px-4 py-2.5 rounded bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+                      required
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -465,7 +541,7 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
                     <p className="text-white font-medium">{formData.accountNumber}</p>
                   </div>
                   <div className="border-l-2 border-gray-700 pl-4">
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">IBAN</p>
+                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Routing Number</p>
                     <p className="text-white font-medium">{formData.iban || "—"}</p>
                   </div>
                   <div className="border-l-2 border-gray-700 pl-4 sm:col-span-2">
@@ -481,11 +557,11 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
                   </div>
                   <div className="border-l-2 border-gray-700 pl-4">
                     <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Email</p>
-                    <p className="text-white font-medium">{formData.zelleEmail}</p>
+                    <p className="text-white font-medium">{formData.zelleEmail || 'NA'}</p>
                   </div>
                   <div className="border-l-2 border-gray-700 pl-4 sm:col-span-2">
                     <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Phone</p>
-                    <p className="text-white font-medium">{formData.zellePhone}</p>
+                    <p className="text-white font-medium">{formData.zellePhone || 'NA'}</p>
                   </div>
                 </div>
               )}
@@ -573,14 +649,14 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
                               ? 'bg-green-950 text-green-400 border border-green-900'
                               : transaction.withdrawal_status === 0
                               ? 'bg-yellow-950 text-yellow-400 border border-yellow-900'
-                              : 'bg-gray-800 text-gray-400 border border-gray-700'
+                              : 'bg-red-800 text-white border border-red-700'
                           }`}
                         >
                           {transaction.withdrawal_status === 1 
                             ? 'Approved' 
                             : transaction.withdrawal_status === 0 
                             ? 'Pending' 
-                            : 'Unknown'}
+                            : 'Rejected'}
                         </span>
                       </div>
                     </div>
