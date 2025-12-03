@@ -156,7 +156,7 @@ const handleFinalSubmit = async () => {
 
     if (!popup) throw new Error('Please allow popups for this site to complete the payment.');
 
-    console.log('🪟 Popup window opened');
+    console.log(' Popup window opened');
 
     // 3️⃣ Create form to submit to ConvergePay HPP
     const form = document.createElement('form');
@@ -243,15 +243,49 @@ const handleFinalSubmit = async () => {
           return;
         }
 
-        // Try to access popup URL to detect redirect to lolligive.com
+        // Try to access popup URL to detect redirect to lolligive.com/success
         try {
           const popupUrl = popup.location.href;
           console.log('🔍 Checking popup URL:', popupUrl);
           
           // Check if redirected to success page
-          if (popupUrl.includes('lolligive.com')) {
-            console.log('✅ Payment successful - detected redirect to lolligive.com');
+          if (popupUrl.includes('lolligive.com/success')) {
+            console.log('✅ Payment successful - detected redirect to lolligive.com/success');
             clearInterval(checkWindow);
+            
+            // Call the transaction API to track the donation
+            const payload = {
+              org_key_id: orgId,
+              amount: parseFloat(formData.amount),
+              name: formData.name,
+              payment_method: formData.paymentMethod,
+              purpose_reason: formData.purpose_reason,
+              comment: formData.comment || ''
+            };
+
+            console.log('📤 Submitting donation to tracking API:', payload);
+
+            fetch('https://api.lolligive.com/api/transaction/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Failed to record transaction');
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('✅ Transaction recorded successfully:', data);
+            })
+            .catch(error => {
+              console.error('❌ Error recording transaction:', error);
+            });
+
+            // Close popup and show success message
             popup.close();
             setPaymentWindow(null);
             setSubmitStatus("success");
@@ -260,7 +294,7 @@ const handleFinalSubmit = async () => {
             // Auto-hide success message after 5 seconds
             setTimeout(() => {
               setShowPaymentOverlay(false);
-              // Optional: Reset form
+              // Reset form
               setStep(1);
               setFormData({
                 amount: '',

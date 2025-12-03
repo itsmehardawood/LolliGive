@@ -340,7 +340,7 @@ const WithdrawalRequests = () => {
                     <p className="text-sm text-blue-400 font-medium">
                       {withdrawal.user?.business_profile?.organization_name || 'Unknown Organization'}
                     </p>
-                    <p className="text-xs text-gray-500">Org ID: {withdrawal.org_id}</p>
+                    {/* <p className="text-xs text-gray-500">Org ID: {withdrawal.org_id}</p> */}
                   </div>
                 </div>
                 <span className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${statusInfo.bgColor} ${statusInfo.color} border ${statusInfo.borderColor}`}>

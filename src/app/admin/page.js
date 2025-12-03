@@ -15,10 +15,10 @@ import TempDisplaySettings from '../components/Super Admin/General/TempDisplaySe
 import NavigationSidebar from '../components/Super Admin/General/AdminNav';
 import DashboardFooter from '../components/Super Admin/General/AdminFooter';
 import PageHeader from '../components/Super Admin/General/AdminHeader';
-import TransactionFilter from '../components/Super Admin/TransactionsAll';
 import AdminReports from '../components/Super Admin/Reports/AdminReports';
 import PaymentMethods from '../components/Super Admin/PaymentMethods/PaymentMethods';
 import WithdrawalRequests from '../components/Super Admin/WithdrawalRequests/WithdrawalRequests';
+import TransactionFilter from '../components/Super Admin/Transactions/TransactionsAll';
 
 
 const AdminDashboard = () => {

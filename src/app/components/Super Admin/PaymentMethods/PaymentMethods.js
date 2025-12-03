@@ -125,7 +125,7 @@ const PaymentMethods = () => {
                   <h3 className="text-lg font-semibold text-white">
                     {method.user?.business_profile?.organization_name || 'Unknown Organization'}
                   </h3>
-                  <p className="text-sm text-gray-400">Org ID: {method.org_id}</p>
+                  {/* <p className="text-sm text-gray-400">Org ID: {method.org_id}</p> */}
                 </div>
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
