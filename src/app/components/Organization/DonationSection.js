@@ -322,9 +322,9 @@ const handleStripePaymentSuccess = async () => {
 
   setShowStripeForm(false);
   setSubmitStatus('success');
-  setSubmitMessage('Payment completed successfully! Thank you for your donation.');
+  setSubmitMessage('Payment completed successfully! Thank you for your generous donation.');
   
-  // Reset form after 3 seconds
+  // Reset form after 5 seconds
   setTimeout(() => {
     setStep(1);
     setFormData({
@@ -337,7 +337,7 @@ const handleStripePaymentSuccess = async () => {
     });
     setSubmitStatus(null);
     setClientSecret(null);
-  }, 3000);
+  }, 5000);
 };
 
 const handleStripePaymentError = (errorMessage) => {
@@ -573,13 +573,22 @@ const handleCancelStripePayment = () => {
         {/* Status Messages */}
         {submitStatus && (
           <div
-            className={`mb-6 p-4 rounded-lg ${
+            className={`mb-6 p-6 rounded-lg border-2 ${
               submitStatus === 'success'
-                ? 'bg-green-600 text-white'
-                : 'bg-red-600 text-white'
+                ? 'bg-green-600 text-white border-green-400 shadow-lg shadow-green-500/50'
+                : 'bg-red-600 text-white border-red-400'
             }`}
           >
-            <p className="text-sm">{submitMessage}</p>
+            {submitStatus === 'success' ? (
+              <div className="flex items-center justify-center">
+                <svg className="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-lg font-semibold">{submitMessage}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-center">{submitMessage}</p>
+            )}
           </div>
         )}
 
