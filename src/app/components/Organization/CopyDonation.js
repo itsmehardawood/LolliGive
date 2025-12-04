@@ -1,11 +1,5 @@
-
-
-// real one
-
-
-
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 
 export default function DonationSection({ donationData, organizationSlug, orgId }) {
@@ -29,24 +23,6 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
         name: "Debit Card", 
         icon: "💳",
         description: "Secure payment with your debit card"
-      },
-      { 
-        id: "credit_card", 
-        name: "Credit Card", 
-        icon: "💳",
-        description: "Pay with Visa, MasterCard, or American Express"
-      },
-      { 
-        id: "bank_account", 
-        name: "Bank Account", 
-        icon: "🏦",
-        description: "Direct transfer from your bank account"
-      },
-      { 
-        id: "paypal", 
-        name: "PayPal", 
-        icon: "💰",
-        description: "Pay securely with your PayPal account"
       }
     ]
   } = donationData || {};
@@ -58,12 +34,14 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     name: '',
     purpose_reason: '',
     comment: '',
-    paymentMethod: ''
+    paymentMethod:  'debit_card' //always debit card
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
   const [submitMessage, setSubmitMessage] = useState('');
+  const [showPaymentOverlay, setShowPaymentOverlay] = useState(false);
+  const [paymentWindow, setPaymentWindow] = useState(null);
 
   const handleAmountSelect = (amount) => {
     setFormData(prev => ({
@@ -125,86 +103,321 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     }));
   };
 
-  const handleFinalSubmit = async () => {
-    if (!formData.paymentMethod) {
-      setErrors({ paymentMethod: 'Please select a payment method' });
-      return;
-    }
 
-    if (!orgId) {
-      setErrors({ general: 'Organization ID not found. Please try again.' });
-      return;
-    }
 
-    setIsSubmitting(true);
-    setErrors({});
-    setSubmitStatus(null);
-    setSubmitMessage('');
 
-    try {
-      const payload = {
-        org_key_id: orgId,
-        amount: parseFloat(formData.amount),
-        name: formData.name,
-        payment_method: formData.paymentMethod,
-        purpose_reason: formData.purpose_reason,
-        comment: formData.comment || ''
-      };
+const handleFinalSubmit = async () => {
+  console.log('🚀 [DONATION] handleFinalSubmit called');
+  console.log('📋 [DONATION] Form data:', formData);
+  console.log('🏢 [DONATION] Organization ID:', orgId);
 
-      console.log('Submitting donation:', payload);
+  if (!formData.paymentMethod) {
+    setErrors({ paymentMethod: 'Please select a payment method' });
+    console.error('❌ Payment method not selected');
+    return;
+  }
 
-      const response = await fetch('https://api.lolligive.com/api/transaction/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+  if (!orgId) {
+    setErrors({ general: 'Organization ID not found. Please try again.' });
+    console.error('❌ Organization ID missing');
+    return;
+  }
 
-      const responseData = await response.json();
+  setIsSubmitting(true);
+  setErrors({});
+  setSubmitStatus(null);
+  setSubmitMessage('');
 
-      if (!response.ok) {
-        throw new Error(responseData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      // Success
-      setSubmitStatus('success');
-      setSubmitMessage('Thank you for your donation! Your transaction has been processed successfully.');
-      
-      // Reset form after successful submission
-      setTimeout(() => {
-        resetForm();
-      }, 3000);
-
-    } catch (error) {
-      console.error('Error processing donation:', error);
-      setSubmitStatus('error');
-      setSubmitMessage(error.message || 'There was an error processing your donation. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const resetForm = () => {
-    setStep(1);
-    setFormData({
-      amount: '',
-      customAmount: '',
-      name: '',
-      purpose_reason: '',
-      comment: '',
-      paymentMethod: ''
+  try {
+    // 1️⃣ Request transaction token from Laravel backend
+    console.log('📤 Requesting transaction token from Laravel API...');
+    const tokenResponse = await fetch('https://api.lolligive.com/api/getTransactionToken', {
+      method: 'POST',
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: formData.amount })
     });
-    setErrors({});
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.json();
+      throw new Error(errorData.error || 'Failed to get transaction token');
+    }
+
+    const { ssl_txn_auth_token } = await tokenResponse.json();
+    if (!ssl_txn_auth_token) throw new Error('No transaction token received');
+
+    console.log('🎫 Transaction token received:', ssl_txn_auth_token.substring(0, 20) + '...');
+
+    // 2️⃣ Open popup window
+    const width = 500, height = 650;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    const windowFeatures = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes,toolbar=no,menubar=no,location=yes`;
+    const popup = window.open('', 'PaymentWindow', windowFeatures);
+
+    if (!popup) throw new Error('Please allow popups for this site to complete the payment.');
+
+    console.log(' Popup window opened');
+
+    // 3️⃣ Create form to submit to ConvergePay HPP
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://api.convergepay.com/hosted-payments';
+    form.target = 'PaymentWindow';
+    form.style.display = 'none';
+
+    // Token
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = 'ssl_txn_auth_token';
+    tokenInput.value = ssl_txn_auth_token;
+    form.appendChild(tokenInput);
+
+    // Custom Fields for Converge HPP
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'name';
+    nameInput.value = formData.name;
+    form.appendChild(nameInput);
+
+    const commentInput = document.createElement('input');
+    commentInput.type = 'hidden';
+    commentInput.name = 'comment';
+    commentInput.value = formData.comment;
+    form.appendChild(commentInput);
+
+    const orgIdInput = document.createElement('input');
+    orgIdInput.type = 'hidden';
+    orgIdInput.name = 'org_id';
+    orgIdInput.value = orgId;
+    form.appendChild(orgIdInput);
+
+    const purposeInput = document.createElement('input');
+    purposeInput.type = 'hidden';
+    purposeInput.name = 'purpose';
+    purposeInput.value = formData.purpose_reason;
+    form.appendChild(purposeInput);
+
+    const paymentMethodInput = document.createElement('input');
+    paymentMethodInput.type = 'hidden';
+    paymentMethodInput.name = 'paymentmethod';
+    paymentMethodInput.value = formData.paymentMethod;
+    form.appendChild(paymentMethodInput);
+
+    const amountInput = document.createElement('input');
+    amountInput.type = 'hidden';
+    amountInput.name = 'amount';
+    amountInput.value = formData.amount;
+    form.appendChild(amountInput);
+
+//   console.log("📨 SENDING TO CONVERGE HPP:", {
+//   ssl_txn_auth_token,
+//   name: formData.name,
+//   comment: formData.comment,
+//   org_id: orgId,
+//   purpose: formData.purpose_reason,
+//   paymentmethod: formData.paymentMethod,
+//   callback_url: 'http://localhost:3000/api/elavon/hpp-callback'
+// });
+
+    // Append & submit
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    setPaymentWindow(popup);
+    setShowPaymentOverlay(true);
+    setSubmitStatus("success");
+    setSubmitMessage("Payment window opened. Complete payment in the popup window.");
+    console.log('✅ Form submitted to Converge HPP');
+
+    // 4️⃣ Monitor popup for close and successful redirect
+    const checkWindow = setInterval(() => {
+      try {
+        // Check if popup is closed
+        if (popup.closed) {
+          console.log('🪟 Payment window closed by user');
+          clearInterval(checkWindow);
+          setShowPaymentOverlay(false);
+          setPaymentWindow(null);
+          setSubmitMessage("Payment window closed. Check your donation status in a moment.");
+          return;
+        }
+
+        // Try to access popup URL to detect redirect to lolligive.com/success
+        try {
+          const popupUrl = popup.location.href;
+          console.log('🔍 Checking popup URL:', popupUrl);
+          
+          // Check if redirected to success page
+          if (popupUrl.includes('lolligive.com/success')) {
+            console.log('✅ Payment successful - detected redirect to lolligive.com/success');
+            clearInterval(checkWindow);
+            
+            // Call the transaction API to track the donation
+            const payload = {
+              org_key_id: orgId,
+              amount: parseFloat(formData.amount),
+              name: formData.name,
+              payment_method: formData.paymentMethod,
+              purpose_reason: formData.purpose_reason,
+              comment: formData.comment || ''
+            };
+
+            console.log('📤 Submitting donation to tracking API:', payload);
+
+            fetch('https://api.lolligive.com/api/transaction/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Failed to record transaction');
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('✅ Transaction recorded successfully:', data);
+            })
+            .catch(error => {
+              console.error('❌ Error recording transaction:', error);
+            });
+
+            // Close popup and show success message
+            popup.close();
+            setPaymentWindow(null);
+            setSubmitStatus("success");
+            setSubmitMessage("Payment completed successfully! Thank you for your donation.");
+            
+            // Auto-hide success message after 5 seconds
+            setTimeout(() => {
+              setShowPaymentOverlay(false);
+              // Reset form
+              setStep(1);
+              setFormData({
+                amount: '',
+                customAmount: '',
+                name: '',
+                purpose_reason: '',
+                comment: '',
+                paymentMethod: 'debit_card'
+              });
+            }, 5000);
+          }
+        } catch (e) {
+          // Cross-origin error - popup is still on payment gateway domain
+          // This is expected and normal, just continue monitoring
+        }
+      } catch (error) {
+        console.error('Error monitoring popup:', error);
+      }
+    }, 500);
+
+  } catch (error) {
+    console.error('💥 Error processing donation:', error);
+    setSubmitStatus('error');
+    setSubmitMessage(error.message || 'There was an error processing your donation.');
+  } finally {
     setIsSubmitting(false);
-    setSubmitStatus(null);
-    setSubmitMessage('');
+    console.log('🏁 handleFinalSubmit completed');
+  }
+};
+
+
+
+
+
+
+
+  const handleClosePaymentWindow = () => {
+    if (paymentWindow && !paymentWindow.closed) {
+      paymentWindow.close();
+    }
+    setShowPaymentOverlay(false);
+    setPaymentWindow(null);
   };
 
-  // Debug: log orgId when component renders
-  // console.log('DonationSection orgId:', orgId);
+ 
 
   return (
+    <>
+    {/* Payment Processing Overlay */}
+    {showPaymentOverlay && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-80 p-4">
+        <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
+          <div className="mb-6">
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+              submitStatus === 'success' && submitMessage.includes('completed successfully')
+                ? 'bg-green-600'
+                : 'bg-red-700'
+            }`}>
+              {submitStatus === 'success' && submitMessage.includes('completed successfully') ? (
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              )}
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              {submitStatus === 'success' && submitMessage.includes('completed successfully')
+                ? 'Payment Successful!'
+                : 'Payment Window Open'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {submitMessage.includes('completed successfully')
+                ? 'Your donation has been processed successfully. Thank you for your generosity!'
+                : 'Please complete your payment in the popup window.'}
+            </p>
+            {!submitMessage.includes('completed successfully') && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> Do not close this page until your payment is complete.
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-3">
+            {submitMessage.includes('completed successfully') ? (
+              <button
+                onClick={() => {
+                  setShowPaymentOverlay(false);
+                  setStep(1);
+                  setFormData({
+                    amount: '',
+                    customAmount: '',
+                    name: '',
+                    purpose_reason: '',
+                    comment: '',
+                    paymentMethod: 'debit_card'
+                  });
+                }}
+                className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                Make Another Donation
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleClosePaymentWindow}
+                  className="w-full bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 transition"
+                >
+                  Cancel Payment
+                </button>
+                <p className="text-xs text-gray-500">
+                  Window will close automatically when payment is complete
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
 
     <section className="py-0 sm:py-12 lg:py-16 bg-black px-4 sm:px-6 lg:px-8">
   <div className="max-w-7xl mx-auto">
@@ -224,7 +437,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
         {step === 1 ? (
           <div>
             <h3 className="text-xl font-bold text-red-700 mb-6">
-              Step 1: Donation Details
+              Step 1: Giving Details
             </h3>
 
             {/* Amount Selection */}
@@ -288,7 +501,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
             {/* Purpose/Reason */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-white mb-2">
-                Donation Purpose *
+                Giving Purpose *
               </label>
               <select
                 name="purpose_reason"
@@ -296,7 +509,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-white rounded-lg bg-black text-white focus:outline-none focus:ring-2 focus:ring-red-600"
               >
-                <option value="" className="text-white bg-gray-900">Select donation purpose</option>
+                <option value="" className="text-white bg-gray-900">Select giving purpose</option>
                 {donationReasons.map((reason) => (
                   <option
                     key={reason.value}
@@ -344,7 +557,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
 
             {/* Donation Summary */}
             <div className="bg-zinc-900 text-white rounded-lg p-4 mb-6">
-              <h4 className="font-semibold mb-2">Donation Summary</h4>
+              <h4 className="font-semibold mb-2">Giving Summary For Today</h4>
               <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span>Amount:</span>
@@ -361,7 +574,7 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Donor:</span>
+                  <span>Name:</span>
                   <span className="font-medium">{formData.name}</span>
                 </div>
               </div>
@@ -370,7 +583,9 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
             {/* Payment Methods */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-white mb-3">
-                Choose Payment Method *
+                <span className="inline-block bg-yellow-500/90 text-black font-bold px-3 py-1.5 rounded">
+                  **For Security Reasons ONLY DEBIT CARDS are allowed *
+                </span>
               </label>
               <div className="space-y-3">
                 {paymentMethods.map((method) => (
@@ -442,9 +657,9 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
                     Processing...
                   </div>
                 ) : submitStatus === 'success' ? (
-                  'Donation Completed ✓'
+                  'Payment Completed ✓'
                 ) : (
-                  'Complete Donation'
+                  'Complete Payment'
                 )}
               </button>
             </div>
@@ -454,11 +669,10 @@ export default function DonationSection({ donationData, organizationSlug, orgId 
     </div>
   </div>
 </section>
-
+</>
 
   );
 }
-
 
 
 
