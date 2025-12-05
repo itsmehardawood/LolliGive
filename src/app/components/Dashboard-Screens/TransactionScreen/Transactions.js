@@ -65,18 +65,16 @@ useEffect(() => {
     .map((t) => {
       // Convert API response format to display format
       const amount = parseFloat(t.amount);
-      const bankFee = parseFloat(t.bank_fee);
-      const amountReceived = parseFloat(t.amount_received);
       const time = new Date(t.created_at).toLocaleString();
-      const paymentMethod = t.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const paymentMethod = t.paymentmethod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const purpose = t.purpose ? t.purpose.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
       
       return { 
         ...t, 
         amount, 
-        bankFee,
-        amountReceived,
         time,
-        paymentMethod
+        paymentMethod,
+        purpose
       };
     })
     .filter((t) => {
@@ -93,8 +91,8 @@ useEffect(() => {
       return true;
     });
 
-  const totalAmountReceived = filteredTransactions.reduce(
-    (sum, t) => sum + t.amountReceived,
+  const totalAmount = filteredTransactions.reduce(
+    (sum, t) => sum + t.amount,
     0
   );
 
@@ -106,23 +104,23 @@ useEffect(() => {
       startY: 20,
       head: [
         [
-          "TID",
+          "TXN ID",
           "Name",
           "Amount",
-          "Bank Fee",
-          "Amount Received",
-          "Time",
           "Payment Method",
+          "Purpose",
+          "Comment",
+          "Time",
         ],
       ],
       body: filteredTransactions.map((t) => [
-        t.tid,
+        t.txn_id,
         t.name,
         `$${t.amount.toFixed(2)}`,
-        `$${t.bankFee.toFixed(2)}`,
-        `$${t.amountReceived.toFixed(2)}`,
-        t.time,
         t.paymentMethod,
+        t.purpose,
+        t.comment || 'N/A',
+        t.time,
       ]),
     });
     doc.save("transactions.pdf");
@@ -132,13 +130,13 @@ useEffect(() => {
   const exportExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(
       filteredTransactions.map((t) => ({
-        TID: t.tid,
+        TxnID: t.txn_id,
         Name: t.name,
         Amount: t.amount.toFixed(2),
-        BankFee: t.bankFee.toFixed(2),
-        AmountReceived: t.amountReceived.toFixed(2),
-        Time: t.time,
         PaymentMethod: t.paymentMethod,
+        Purpose: t.purpose,
+        Comment: t.comment || 'N/A',
+        Time: t.time,
       }))
     );
     const workbook = XLSX.utils.book_new();
@@ -230,10 +228,10 @@ useEffect(() => {
               <div className="bg-gray-900 p-6 rounded-2xl shadow-lg flex items-center justify-between border border-gray-700">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">
-                    Total Amount Received
+                    Total Amount
                   </h3>
                   <p className="text-3xl md:text-4xl font-bold text-indigo-400 mt-1">
-                    ${totalAmountReceived.toFixed(2)}
+                    ${totalAmount.toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-indigo-500/20 p-3 rounded-full">
@@ -250,7 +248,7 @@ useEffect(() => {
                   className="bg-gray-800 p-4 rounded-lg mb-4 shadow-lg"
                 >
                   <p className="text-sm">
-                    <strong>TID:</strong> {t.tid}
+                    <strong>TXN ID:</strong> {t.txn_id}
                   </p>
                   <p className="text-sm">
                     <strong>Name:</strong> {t.name}
@@ -259,16 +257,16 @@ useEffect(() => {
                     <strong>Amount:</strong> ${t.amount.toFixed(2)}
                   </p>
                   <p className="text-sm">
-                    <strong>Bank Fee:</strong> ${t.bankFee.toFixed(2)}
+                    <strong>Payment Method:</strong> {t.paymentMethod}
                   </p>
                   <p className="text-sm">
-                    <strong>Amount Received:</strong> ${t.amountReceived.toFixed(2)}
+                    <strong>Purpose:</strong> {t.purpose}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Comment:</strong> {t.comment || 'N/A'}
                   </p>
                   <p className="text-sm">
                     <strong>Time:</strong> {t.time}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Payment Method:</strong> {t.paymentMethod}
                   </p>
                 </div>
               ))}
@@ -279,13 +277,13 @@ useEffect(() => {
               <table className="w-full text-sm text-left border border-gray-700">
                 <thead className="bg-gray-800 text-gray-300 uppercase text-xs">
                   <tr>
-                    <th className="px-6 py-3">TID</th>
+                    <th className="px-6 py-3">TXN ID</th>
                     <th className="px-6 py-3">Name</th>
                     <th className="px-6 py-3">Amount</th>
-                    <th className="px-6 py-3">Bank Fee</th>
-                    <th className="px-6 py-3">Amount Received</th>
-                    <th className="px-6 py-3">Time</th>
                     <th className="px-6 py-3">Payment Method</th>
+                    <th className="px-6 py-3">Purpose</th>
+                    <th className="px-6 py-3">Comment</th>
+                    <th className="px-6 py-3">Time</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -294,13 +292,13 @@ useEffect(() => {
                       key={t.id || idx}
                       className="border-b border-gray-700 hover:bg-gray-900 transition"
                     >
-                      <td className="px-6 py-4">{t.tid}</td>
+                      <td className="px-6 py-4">{t.txn_id}</td>
                       <td className="px-6 py-4">{t.name}</td>
                       <td className="px-6 py-4">${t.amount.toFixed(2)}</td>
-                      <td className="px-6 py-4">${t.bankFee.toFixed(2)}</td>
-                      <td className="px-6 py-4">${t.amountReceived.toFixed(2)}</td>
-                      <td className="px-6 py-4">{t.time}</td>
                       <td className="px-6 py-4">{t.paymentMethod}</td>
+                      <td className="px-6 py-4">{t.purpose}</td>
+                      <td className="px-6 py-4">{t.comment || 'N/A'}</td>
+                      <td className="px-6 py-4">{t.time}</td>
                     </tr>
                   ))}
                 </tbody>

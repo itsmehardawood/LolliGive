@@ -50,11 +50,11 @@ export default function TransactionAnalytics() {
       if (result.success && result.data) {
         // Transform API data to match component expectations
         const transformedData = result.data.map(t => ({
-          tid: t.tid,
+          txn_id: t.txn_id,
           name: t.name,
-          amount: parseFloat(t.amount_received), // Use amount_received for analytics
+          amount: parseFloat(t.amount), // Use amount for analytics
           time: t.created_at,
-          paymentMethod: t.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+          paymentMethod: t.paymentmethod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
         }));
         setTransactions(transformedData);
       } else {

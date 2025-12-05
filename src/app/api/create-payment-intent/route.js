@@ -19,7 +19,9 @@ export async function POST(req) {
         purpose_reason,
         comment: comment || '',
       },
-      payment_method_types: ['card'],
+      automatic_payment_methods: {
+        enabled: true,
+      },
     });
 
     return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }), {

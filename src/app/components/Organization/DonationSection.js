@@ -9,10 +9,22 @@ function CheckoutForm({ formData, onSuccess, onError }) {
   const stripe = useStripe();
   const elements = useElements();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    
+    if (!stripe || !elements) {
+      console.error('Stripe or Elements not ready');
+      onError('Payment form is not ready. Please wait and try again.');
+      return;
+    }
+
+    if (!isReady) {
+      console.error('PaymentElement not ready');
+      onError('Payment form is still loading. Please wait.');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -20,17 +32,21 @@ function CheckoutForm({ formData, onSuccess, onError }) {
       const result = await stripe.confirmPayment({
         elements,
         redirect: 'if_required',
+        confirmParams: {
+          return_url: `${window.location.origin}/payment-success`,
+        },
       });
 
       if (result.error) {
         onError(result.error.message);
+        setIsSubmitting(false);
       } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
         // Payment successful - call success handler
         onSuccess();
       }
     } catch (err) {
-      onError(err.message);
-    } finally {
+      console.error('Payment error:', err);
+      onError(err.message || 'An unexpected error occurred');
       setIsSubmitting(false);
     }
   };
@@ -39,18 +55,26 @@ function CheckoutForm({ formData, onSuccess, onError }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <PaymentElement 
         className="mb-4"
+        onReady={() => {
+          setIsReady(true);
+        }}
         options={{
           layout: {
-            type: 'accordion',
+            type: 'tabs',
             defaultCollapsed: false,
-            radios: false,
-            spacedAccordionItems: false,
           },
+          // Only show Google Pay for now (Apple Pay requires domain verification)
+          paymentMethodOrder: ['google_pay', 'card'],
         }}
       />
+      {!isReady && (
+        <div className="text-center text-gray-400 text-sm py-2">
+          Loading payment form...
+        </div>
+      )}
       <button 
         type="submit" 
-        disabled={isSubmitting || !stripe}
+        disabled={isSubmitting || !stripe || !isReady}
         className="w-full bg-red-700 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-500 transition disabled:bg-gray-600 disabled:cursor-not-allowed"
       >
         {isSubmitting ? (
@@ -58,6 +82,8 @@ function CheckoutForm({ formData, onSuccess, onError }) {
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
             Processing...
           </div>
+        ) : !isReady ? (
+          'Loading...'
         ) : (
           'Complete Payment'
         )}
@@ -67,6 +93,14 @@ function CheckoutForm({ formData, onSuccess, onError }) {
 }
 
 function StripePaymentForm({ formData, clientSecret, onSuccess, onError, onCancel }) {
+  if (!clientSecret) {
+    return (
+      <div className="bg-black text-white rounded-lg p-6">
+        <p>Loading payment form...</p>
+      </div>
+    );
+  }
+
   const options = {
     clientSecret,
     appearance: {
@@ -79,17 +113,7 @@ function StripePaymentForm({ formData, clientSecret, onSuccess, onError, onCance
         borderRadius: '8px',
       },
     },
-    fields: {
-      billingDetails: {
-        name: 'never',
-        email: 'never',
-        phone: 'never',
-        address: 'never',
-      },
-    },
-    terms: {
-      card: 'never',
-    },
+    loader: 'auto',
   };
 
   return (
@@ -99,6 +123,7 @@ function StripePaymentForm({ formData, clientSecret, onSuccess, onError, onCance
         <button
           onClick={onCancel}
           className="text-gray-400 hover:text-white transition"
+          type="button"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -344,8 +369,11 @@ const handleStripePaymentError = (errorMessage) => {
   console.error('❌ Stripe payment error:', errorMessage);
   setSubmitStatus('error');
   setSubmitMessage(errorMessage);
-  setShowStripeForm(false);
-  setClientSecret(null);
+  // Don't immediately close the form to allow user to see the error
+  setTimeout(() => {
+    setShowStripeForm(false);
+    setClientSecret(null);
+  }, 100);
 };
 
 const handleCancelStripePayment = () => {
