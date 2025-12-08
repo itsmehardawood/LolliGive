@@ -65,6 +65,8 @@ useEffect(() => {
     .map((t) => {
       // Convert API response format to display format
       const amount = parseFloat(t.amount);
+      const bankFees = t.bank_fees ? parseFloat(t.bank_fees) : 0;
+      const amountReceived = amount - bankFees;
       const time = new Date(t.created_at).toLocaleString();
       const paymentMethod = t.paymentmethod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       const purpose = t.purpose ? t.purpose.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
@@ -72,6 +74,8 @@ useEffect(() => {
       return { 
         ...t, 
         amount, 
+        bankFees,
+        amountReceived,
         time,
         paymentMethod,
         purpose
@@ -89,7 +93,8 @@ useEffect(() => {
         if (txDate > end) return false;
       }
       return true;
-    });
+    })
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by latest first
 
   const totalAmount = filteredTransactions.reduce(
     (sum, t) => sum + t.amount,
@@ -98,30 +103,35 @@ useEffect(() => {
 
   // Export to PDF
   const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Transactions Report", 14, 10);
+    const doc = new jsPDF('l', 'pt', 'a4'); // landscape orientation
+    doc.text("Transactions Report", 14, 20);
     autoTable(doc, {
-      startY: 20,
+      startY: 30,
       head: [
         [
           "TXN ID",
           "Name",
-          "Amount",
+          "Amount Sent",
+          "Bank Fees",
+          "Amount Received",
           "Payment Method",
           "Purpose",
           "Comment",
-          "Time",
+          "Date/Time",
         ],
       ],
       body: filteredTransactions.map((t) => [
         t.txn_id,
         t.name,
         `$${t.amount.toFixed(2)}`,
+        `$${t.bankFees.toFixed(2)}`,
+        `$${t.amountReceived.toFixed(2)}`,
         t.paymentMethod,
         t.purpose,
         t.comment || 'N/A',
         t.time,
       ]),
+      styles: { fontSize: 8 },
     });
     doc.save("transactions.pdf");
   };
@@ -132,11 +142,13 @@ useEffect(() => {
       filteredTransactions.map((t) => ({
         TxnID: t.txn_id,
         Name: t.name,
-        Amount: t.amount.toFixed(2),
+        AmountSent: t.amount.toFixed(2),
+        BankFees: t.bankFees.toFixed(2),
+        AmountReceived: t.amountReceived.toFixed(2),
         PaymentMethod: t.paymentMethod,
         Purpose: t.purpose,
         Comment: t.comment || 'N/A',
-        Time: t.time,
+        DateTime: t.time,
       }))
     );
     const workbook = XLSX.utils.book_new();
@@ -254,7 +266,13 @@ useEffect(() => {
                     <strong>Name:</strong> {t.name}
                   </p>
                   <p className="text-sm">
-                    <strong>Amount:</strong> ${t.amount.toFixed(2)}
+                    <strong>Amount Sent:</strong> ${t.amount.toFixed(2)}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Bank Fees:</strong> ${t.bankFees.toFixed(2)}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Amount Received:</strong> ${t.amountReceived.toFixed(2)}
                   </p>
                   <p className="text-sm">
                     <strong>Payment Method:</strong> {t.paymentMethod}
@@ -266,7 +284,7 @@ useEffect(() => {
                     <strong>Comment:</strong> {t.comment || 'N/A'}
                   </p>
                   <p className="text-sm">
-                    <strong>Time:</strong> {t.time}
+                    <strong>Date/Time:</strong> {t.time}
                   </p>
                 </div>
               ))}
@@ -274,31 +292,35 @@ useEffect(() => {
 
             {/* Table */}
             <div className="hidden md:block overflow-x-auto rounded-lg shadow-lg">
-              <table className="w-full text-sm text-left border border-gray-700">
-                <thead className="bg-gray-800 text-gray-300 uppercase text-xs">
+              <table className="w-full text-left border border-gray-700">
+                <thead className="bg-gray-800 text-gray-300 uppercase text-[10px]">
                   <tr>
-                    <th className="px-6 py-3">TXN ID</th>
-                    <th className="px-6 py-3">Name</th>
-                    <th className="px-6 py-3">Amount</th>
-                    <th className="px-6 py-3">Payment Method</th>
-                    <th className="px-6 py-3">Purpose</th>
-                    <th className="px-6 py-3">Comment</th>
-                    <th className="px-6 py-3">Time</th>
+                    <th className="px-2 py-3 whitespace-nowrap">TXN ID</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Name</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Amount Sent</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Bank Fees</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Amount Received</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Payment Method</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Purpose</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Comment</th>
+                    <th className="px-2 py-3 whitespace-nowrap">Date/Time</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="text-xs">
                   {filteredTransactions.map((t, idx) => (
                     <tr
                       key={t.id || idx}
                       className="border-b border-gray-700 hover:bg-gray-900 transition"
                     >
-                      <td className="px-6 py-4">{t.txn_id}</td>
-                      <td className="px-6 py-4">{t.name}</td>
-                      <td className="px-6 py-4">${t.amount.toFixed(2)}</td>
-                      <td className="px-6 py-4">{t.paymentMethod}</td>
-                      <td className="px-6 py-4">{t.purpose}</td>
-                      <td className="px-6 py-4">{t.comment || 'N/A'}</td>
-                      <td className="px-6 py-4">{t.time}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">{t.txn_id}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">{t.name}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">${t.amount.toFixed(2)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">${t.bankFees.toFixed(2)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">${t.amountReceived.toFixed(2)}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">{t.paymentMethod}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">{t.purpose}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">{t.comment || 'N/A'}</td>
+                      <td className="px-2 py-3 whitespace-nowrap">{t.time}</td>
                     </tr>
                   ))}
                 </tbody>
