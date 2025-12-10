@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { DollarSign } from "lucide-react";
 
 export default function Transactions() {
@@ -137,23 +137,47 @@ useEffect(() => {
   };
 
   // Export to Excel
-  const exportExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(
-      filteredTransactions.map((t) => ({
-        TxnID: t.txn_id,
-        Name: t.name,
-        AmountSent: t.amount.toFixed(2),
-        BankFees: t.bankFees.toFixed(2),
-        AmountReceived: t.amountReceived.toFixed(2),
-        PaymentMethod: t.paymentMethod,
-        Purpose: t.purpose,
-        Comment: t.comment || 'N/A',
-        DateTime: t.time,
-      }))
-    );
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-    XLSX.writeFile(workbook, "transactions.xlsx");
+  const exportExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Transactions");
+    
+    // Add headers
+    worksheet.columns = [
+      { header: "TxnID", key: "txnId", width: 15 },
+      { header: "Name", key: "name", width: 20 },
+      { header: "AmountSent", key: "amountSent", width: 12 },
+      { header: "BankFees", key: "bankFees", width: 12 },
+      { header: "AmountReceived", key: "amountReceived", width: 15 },
+      { header: "PaymentMethod", key: "paymentMethod", width: 15 },
+      { header: "Purpose", key: "purpose", width: 15 },
+      { header: "Comment", key: "comment", width: 20 },
+      { header: "DateTime", key: "dateTime", width: 20 },
+    ];
+    
+    // Add data
+    filteredTransactions.forEach((t) => {
+      worksheet.addRow({
+        txnId: t.txn_id,
+        name: t.name,
+        amountSent: t.amount.toFixed(2),
+        bankFees: t.bankFees.toFixed(2),
+        amountReceived: t.amountReceived.toFixed(2),
+        paymentMethod: t.paymentMethod,
+        purpose: t.purpose,
+        comment: t.comment || 'N/A',
+        dateTime: t.time,
+      });
+    });
+    
+    // Generate and download file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "transactions.xlsx";
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
