@@ -21,7 +21,7 @@ async function fetchOrganizationFromAPI(alias) {
       throw new Error(apiResponse.message || 'API request failed');
     }
 
-    console.log('Fetched organization data from API:', apiResponse.data);
+    // console.log('Fetched organization data from API:', apiResponse.data);
     // setItem('org_id', apiResponse.data.orgId);
     return apiResponse.data;
   } catch (error) {
