@@ -48,6 +48,8 @@ export default function OrganizationRegistration() {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [userProfileStatus, setUserProfileStatus] = useState('loading'); // New state for profile status
   const [isHeroVideo, setIsHeroVideo] = useState(false); // Toggle for hero image/video
+  const [originalHeroMedia, setOriginalHeroMedia] = useState(null); // Store original hero media URL
+  const [originalIsVideo, setOriginalIsVideo] = useState(false); // Store original media type
   const [formData, setFormData] = useState({
     // Basic Info
     name: '',
@@ -201,6 +203,9 @@ export default function OrganizationRegistration() {
     if (existingData) {
       // Set the isHeroVideo state based on existing data
       setIsHeroVideo(existingData.isVideo || false);
+      // Store original hero media for preserving when toggling
+      setOriginalHeroMedia(existingData.mainImage || null);
+      setOriginalIsVideo(existingData.isVideo || false);
       
       setFormData({
         name: existingData.name || '',
@@ -247,19 +252,31 @@ export default function OrganizationRegistration() {
           newErrors.welcomeText = 'Welcome text cannot exceed 300 characters';
         }
         
-        // Logo validation - required for new, optional for update if already exists
-        if (!formData.logo) {
+        // Logo validation - required for new registrations only
+        if (!isUpdate && !formData.logo) {
           newErrors.logo = 'Organization logo is required';
         }
         
-        // Main image/video validation
-        if (isHeroVideo) {
-          if (!formData.mainImage) {
-            newErrors.mainImage = 'Hero video is required';
+        // Main image/video validation - required for new, but for updates allow keeping existing
+        // Only validate if user is creating new (not updating) OR if they switched media type
+        if (!isUpdate) {
+          if (isHeroVideo) {
+            if (!formData.mainImage) {
+              newErrors.mainImage = 'Hero video is required';
+            }
+          } else {
+            if (!formData.mainImage) {
+              newErrors.mainImage = 'Hero image is required';
+            }
           }
         } else {
-          if (!formData.mainImage) {
-            newErrors.mainImage = 'Hero image is required';
+          // For updates: only require new upload if they switched between image/video
+          // Check if they switched types by comparing with existing data
+          const switchedType = existingData && (existingData.isVideo !== isHeroVideo);
+          if (switchedType && !formData.mainImage) {
+            newErrors.mainImage = isHeroVideo 
+              ? 'Please upload a new hero video' 
+              : 'Please upload a new hero image';
           }
         }
         break;
@@ -280,7 +297,8 @@ export default function OrganizationRegistration() {
           newErrors.aboutUsText = 'About us text should be at least 50 characters';
         }
         
-        if (!formData.aboutUsImage) {
+        // About us image validation - required for new registrations only
+        if (!isUpdate && !formData.aboutUsImage) {
           newErrors.aboutUsImage = 'About us image is required';
         }
         break;
@@ -329,7 +347,9 @@ export default function OrganizationRegistration() {
       const file = files[0];
       if (!file) return;
       
-      // Validate file type
+      // Validate file type and size
+      const MAX_VIDEO_SIZE = 15 * 1024 * 1024; // 15 MB in bytes
+      
       if (name === 'logo' || name === 'aboutUsImage') {
         const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
         if (!validImageTypes.includes(file.type)) {
@@ -343,6 +363,11 @@ export default function OrganizationRegistration() {
             setErrors(prev => ({ ...prev, [name]: 'Only MP4 videos are allowed' }));
             return;
           }
+          // Check video file size
+          if (file.size > MAX_VIDEO_SIZE) {
+            setErrors(prev => ({ ...prev, [name]: `Video size must be 15 MB or less. Current size: ${(file.size / (1024 * 1024)).toFixed(2)} MB` }));
+            return;
+          }
         } else {
           const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
           if (!validImageTypes.includes(file.type)) {
@@ -353,6 +378,11 @@ export default function OrganizationRegistration() {
       } else if (name === 'videoUrl') {
         if (file.type !== 'video/mp4') {
           setErrors(prev => ({ ...prev, [name]: 'Only MP4 videos are allowed' }));
+          return;
+        }
+        // Check video file size
+        if (file.size > MAX_VIDEO_SIZE) {
+          setErrors(prev => ({ ...prev, [name]: `Video size must be 15 MB or less. Current size: ${(file.size / (1024 * 1024)).toFixed(2)} MB` }));
           return;
         }
       }
@@ -468,11 +498,19 @@ export default function OrganizationRegistration() {
       // Add isVideo flag
       submitData.append('isVideo', isHeroVideo);
       
-      // Add file uploads
-      if (cleanedData.logo) submitData.append('logo', cleanedData.logo);
-      if (cleanedData.mainImage) submitData.append('mainImage', cleanedData.mainImage);
-      if (cleanedData.aboutUsImage) submitData.append('aboutUsImage', cleanedData.aboutUsImage);
-      if (cleanedData.videoUrl) submitData.append('videoUrl', cleanedData.videoUrl);
+      // Add file uploads - only if they are File objects (new uploads), not URL strings (existing data)
+      if (cleanedData.logo && typeof cleanedData.logo !== 'string') {
+        submitData.append('logo', cleanedData.logo);
+      }
+      if (cleanedData.mainImage && typeof cleanedData.mainImage !== 'string') {
+        submitData.append('mainImage', cleanedData.mainImage);
+      }
+      if (cleanedData.aboutUsImage && typeof cleanedData.aboutUsImage !== 'string') {
+        submitData.append('aboutUsImage', cleanedData.aboutUsImage);
+      }
+      if (cleanedData.videoUrl && typeof cleanedData.videoUrl !== 'string') {
+        submitData.append('videoUrl', cleanedData.videoUrl);
+      }
       
       // Add contact info in the format backend expects: contactInfo[0][field]
       submitData.append('contactInfo[0][address]', cleanedData.contactInfo.address);
@@ -483,20 +521,7 @@ export default function OrganizationRegistration() {
       cleanedData.purpose_reason.forEach((reason, index) => {
         submitData.append(`purpose_reason[${index}]`, reason);
       });
-      
-
-
-      // Debug: Log all FormData entries
-      // console.log('=== FormData being sent to API ===');
-      // for (let [key, value] of submitData.entries()) {
-      //   if (value instanceof File) {
-      //     console.log(`${key}:`, `[FILE] ${value.name} (${value.type}, ${value.size} bytes)`);
-      //   } else {
-      //     console.log(`${key}:`, value);
-      //   }
-      // }
-      // console.log('=== End FormData ===');
-
+    
       // Use the same POST API endpoint for both create and update operations
       const isUpdate = existingData !== null;
       const apiUrl = 'https://api.lolligive.com/api/companies';
@@ -816,7 +841,24 @@ export default function OrganizationRegistration() {
                       <div className="flex items-center gap-4 bg-gray-800 p-3 rounded-lg border border-gray-600">
                         <button
                           type="button"
-                          onClick={() => setIsHeroVideo(false)}
+                          onClick={() => {
+                            const isUpdate = existingData !== null;
+                            setIsHeroVideo(false);
+                            
+                            // If updating and switching back to original type, restore original media
+                            if (isUpdate && !originalIsVideo && originalHeroMedia) {
+                              setFormData(prev => ({ ...prev, mainImage: originalHeroMedia }));
+                              setMainImagePreview(originalHeroMedia);
+                            } else if (isUpdate && originalIsVideo) {
+                              // Switching from original video to image - require new upload
+                              setFormData(prev => ({ ...prev, mainImage: null }));
+                              setMainImagePreview(null);
+                            } else {
+                              // New registration - clear field
+                              setFormData(prev => ({ ...prev, mainImage: null }));
+                              setMainImagePreview(null);
+                            }
+                          }}
                           className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
                             !isHeroVideo 
                               ? 'bg-blue-600 text-white shadow-lg' 
@@ -830,7 +872,24 @@ export default function OrganizationRegistration() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setIsHeroVideo(true)}
+                          onClick={() => {
+                            const isUpdate = existingData !== null;
+                            setIsHeroVideo(true);
+                            
+                            // If updating and switching back to original type, restore original media
+                            if (isUpdate && originalIsVideo && originalHeroMedia) {
+                              setFormData(prev => ({ ...prev, mainImage: originalHeroMedia }));
+                              setMainImagePreview(originalHeroMedia);
+                            } else if (isUpdate && !originalIsVideo) {
+                              // Switching from original image to video - require new upload
+                              setFormData(prev => ({ ...prev, mainImage: null }));
+                              setMainImagePreview(null);
+                            } else {
+                              // New registration - clear field
+                              setFormData(prev => ({ ...prev, mainImage: null }));
+                              setMainImagePreview(null);
+                            }
+                          }}
                           className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
                             isHeroVideo 
                               ? 'bg-blue-600 text-white shadow-lg' 
@@ -879,17 +938,43 @@ export default function OrganizationRegistration() {
                     )}
                     {formData.mainImage && isHeroVideo && (
                       <div className="mt-3">
-                        <p className="text-gray-300 text-sm mb-2">Video Selected:</p>
+                        <p className="text-gray-300 text-sm mb-2">
+                          {typeof formData.mainImage === 'string' ? 'Current Video:' : 'Video Selected:'}
+                        </p>
                         <div className="bg-gray-700 border border-gray-600 rounded-lg p-3">
-                          <p className="text-white text-sm flex items-center gap-2">
-                            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            {formData.mainImage.name}
-                          </p>
-                          <p className="text-gray-400 text-xs mt-1">
-                            {(formData.mainImage.size / (1024 * 1024)).toFixed(2)} MB
-                          </p>
+                          {typeof formData.mainImage === 'string' ? (
+                            // Existing video from server (URL string)
+                            <div>
+                              <video 
+                                src={formData.mainImage} 
+                                controls 
+                                className="w-full max-h-40 rounded-lg mb-2"
+                                onError={(e) => {
+                                  console.error('Video load error:', formData.mainImage);
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                              <div className="hidden text-gray-400 text-sm text-center py-4">
+                                <p className="text-red-400 text-sm mb-2">Unable to load video preview</p>
+                                <p className="text-xs text-gray-500 break-all">{formData.mainImage}</p>
+                                <p className="text-green-400 text-xs mt-2">✓ Video is uploaded and will display on the public page</p>
+                              </div>
+                            </div>
+                          ) : (
+                            // Newly selected video file
+                            <div>
+                              <p className="text-white text-sm flex items-center gap-2">
+                                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                {formData.mainImage.name}
+                              </p>
+                              <p className="text-gray-400 text-xs mt-1">
+                                {(formData.mainImage.size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -972,21 +1057,47 @@ export default function OrganizationRegistration() {
                     </p>
                   )}
                   <p className="text-gray-400 text-sm">
-                    Add a video to showcase your organization (MP4 only)
+                    Add a video to showcase your organization (MP4 only, max 15 MB)
                   </p>
                   {formData.videoUrl && (
                     <div className="mt-3">
-                      <p className="text-gray-300 text-sm mb-2">Video Selected:</p>
+                      <p className="text-gray-300 text-sm mb-2">
+                        {typeof formData.videoUrl === 'string' ? 'Current Video:' : 'Video Selected:'}
+                      </p>
                       <div className="bg-gray-700 border border-gray-600 rounded-lg p-3">
-                        <p className="text-white text-sm flex items-center gap-2">
-                          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          {formData.videoUrl.name}
-                        </p>
-                        <p className="text-gray-400 text-xs mt-1">
-                          {(formData.videoUrl.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
+                        {typeof formData.videoUrl === 'string' ? (
+                          // Existing video from server (URL string)
+                          <div>
+                            <video 
+                              src={formData.videoUrl} 
+                              controls 
+                              className="w-full max-h-40 rounded-lg mb-2"
+                              onError={(e) => {
+                                console.error('Video load error:', formData.videoUrl);
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                            <div className="hidden text-gray-400 text-sm text-center py-4">
+                              <p className="text-red-400 text-sm mb-2">Unable to load video preview</p>
+                              <p className="text-xs text-gray-500 break-all">{formData.videoUrl}</p>
+                              <p className="text-green-400 text-xs mt-2">✓ Video is uploaded and will display on the public page</p>
+                            </div>
+                          </div>
+                        ) : (
+                          // Newly selected video file
+                          <div>
+                            <p className="text-white text-sm flex items-center gap-2">
+                              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              {formData.videoUrl.name}
+                            </p>
+                            <p className="text-gray-400 text-xs mt-1">
+                              {(formData.videoUrl.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

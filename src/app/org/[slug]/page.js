@@ -55,9 +55,7 @@ export default function OrganizationPage() {
           title: apiData.name,
           description: [
             apiData.aboutUsText || `At ${apiData.name}, we believe in the power of community and the importance of giving back. Our mission is to create positive change through various programs and initiatives that support those in need.`,
-            apiData.testimonyText || "We provide a trusted platform where our community can come together to support meaningful causes. Every contribution helps us expand our reach and impact more lives.",
-            "Our commitment to transparency means that every dollar donated is used effectively to further our mission and help those who need it most.",
-            "Join us in making a difference. Together, we can build a stronger, more compassionate community for everyone."
+            apiData.testimonyText || "We provide a trusted platform where our community can come together to support meaningful causes. Every contribution helps us expand our reach and impact more lives."
           ],
           backgroundImage: apiData.aboutUsImage || "https://cdn.pixabay.com/photo/2017/09/03/12/14/hand-2710098_1280.jpg"
         },

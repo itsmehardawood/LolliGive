@@ -23,20 +23,18 @@ export default function OrganizationDisplay({ data, onEdit }) {
       <video
         src={src}
         controls
-        autoPlay
-        loop
-        muted
-        playsInline
         className="w-full h-full object-cover"
         onError={(e) => {
+          console.error('Video load error:', src);
           e.target.style.display = 'none';
           e.target.nextSibling.style.display = 'flex';
         }}
       >
         Your browser does not support the video tag.
       </video>
-      <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm" style={{display: 'none'}}>
-        Video not available
+      <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 text-sm p-4" style={{display: 'none'}}>
+        <p className="mb-2">Video not available</p>
+        <p className="text-xs text-gray-600 break-all text-center">{src}</p>
       </div>
     </div>
   );
