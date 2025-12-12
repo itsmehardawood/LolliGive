@@ -67,7 +67,7 @@ export default function OTPModal({
           </div>
           <h2 className="text-2xl font-semibold text-white mb-2">Verify Your Identity</h2>
           <p className="text-sm text-gray-400">
-            We sent a 6-digit code to <span className="text-white font-medium">{phoneNumber}</span>
+            We sent a 6-digit code to your registered phone number
           </p>
         </div>
 
