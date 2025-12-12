@@ -41,6 +41,71 @@ export default function BankInfoForm() {
     }, 3000);
   };
 
+  // Initialize Firebase reCAPTCHA
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Clear previous verifier if exists
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        console.warn("Failed to clear previous reCAPTCHA", e);
+      }
+      window.recaptchaVerifier = null;
+    }
+
+    try {
+      const { auth } = require("../../../lib/firebase");
+      const { RecaptchaVerifier } = require("firebase/auth");
+      
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: (response) => {
+            console.log("reCAPTCHA solved");
+          },
+          "expired-callback": () => {
+            console.log("reCAPTCHA expired");
+            if (window.recaptchaVerifier) {
+              window.recaptchaVerifier.clear();
+              window.recaptchaVerifier = null;
+            }
+          },
+          "error-callback": (error) => {
+            console.error("reCAPTCHA error:", error);
+          },
+        }
+      );
+
+      window.recaptchaVerifier
+        .render()
+        .then((widgetId) => {
+          window.recaptchaWidgetId = widgetId;
+          console.log("reCAPTCHA initialized successfully");
+        })
+        .catch((error) => {
+          console.error("reCAPTCHA render error:", error);
+        });
+    } catch (error) {
+      console.error("reCAPTCHA initialization error:", error);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.warn("Failed to clear reCAPTCHA on unmount", e);
+        }
+        window.recaptchaVerifier = null;
+      }
+    };
+  }, []);
+
   // Fetch existing bank details and phone number on component mount
   useEffect(() => {
     fetchBankDetails();

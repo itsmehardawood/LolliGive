@@ -1,79 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { auth } from "./firebase";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { signInWithPhoneNumber } from "firebase/auth";
 
 /**
  * Custom hook for Firebase OTP verification
- * Handles reCAPTCHA initialization, OTP sending, and verification
+ * Note: reCAPTCHA must be initialized in the parent component
  */
 export function useFirebaseOTP() {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  // Initialize reCAPTCHA
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    // Clear previous verifier if exists
-    if (window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier.clear();
-      } catch (e) {
-        console.warn("Failed to clear previous reCAPTCHA", e);
-      }
-      window.recaptchaVerifier = null;
-    }
-
-    try {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: (response) => {
-            console.log("reCAPTCHA solved", response);
-          },
-          "expired-callback": () => {
-            console.log("reCAPTCHA expired");
-            if (window.recaptchaVerifier) {
-              window.recaptchaVerifier.clear();
-              window.recaptchaVerifier = null;
-            }
-          },
-          "error-callback": (error) => {
-            console.error("reCAPTCHA error:", error);
-          },
-        }
-      );
-
-      window.recaptchaVerifier
-        .render()
-        .then((widgetId) => {
-          window.recaptchaWidgetId = widgetId;
-        })
-        .catch((error) => {
-          console.error("reCAPTCHA render error:", error);
-        });
-    } catch (error) {
-      console.error("reCAPTCHA initialization error:", error);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (window.recaptchaVerifier) {
-        try {
-          window.recaptchaVerifier.clear();
-        } catch (e) {
-          console.warn("Failed to clear reCAPTCHA on unmount", e);
-        }
-        window.recaptchaVerifier = null;
-      }
-    };
-  }, []);
 
   /**
    * Send OTP to the provided phone number
