@@ -12,6 +12,7 @@ const [loading, setLoading] = useState(true);
 const [error, setError] = useState(null);
 const [startDate, setStartDate] = useState("");
 const [endDate, setEndDate] = useState("");
+const [totalReceivedAmount, setTotalReceivedAmount] = useState(0);
 
 // Fetch transactions from API
 const fetchTransactions = async () => {
@@ -44,6 +45,19 @@ const fetchTransactions = async () => {
 
     if (result.success && result.data) {
       setTransactions(result.data);
+      
+      // Extract total_received_amount from last index if available
+      if (Array.isArray(result.data) && result.data.length > 0) {
+        const lastItem = result.data[result.data.length - 1];
+        if (lastItem.total_received_amount !== undefined) {
+          setTotalReceivedAmount(parseFloat(lastItem.total_received_amount));
+        }
+      }
+      
+      // Or if it's directly in the response
+      if (result.total_received_amount !== undefined) {
+        setTotalReceivedAmount(parseFloat(result.total_received_amount));
+      }
     } else {
       throw new Error('Invalid response format');
     }
@@ -63,17 +77,16 @@ useEffect(() => {
   // Filter transactions based on selected dates
   const filteredTransactions = transactions
     .map((t) => {
-      // Convert API response format to display format
+      // Use received_amount from API, not calculated
       const amount = parseFloat(t.amount);
       const bankFees = t.bank_fees ? parseFloat(t.bank_fees) : 0;
-      const amountReceived = amount - bankFees;
+      const amountReceived = t.received_amount !== undefined ? parseFloat(t.received_amount) : amount - bankFees;
       const time = new Date(t.created_at).toLocaleString();
       const paymentMethod = t.paymentmethod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       const purpose = t.purpose ? t.purpose.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
-      
-      return { 
-        ...t, 
-        amount, 
+      return {
+        ...t,
+        amount,
         bankFees,
         amountReceived,
         time,
@@ -95,11 +108,6 @@ useEffect(() => {
       return true;
     })
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by latest first
-
-  const totalAmount = filteredTransactions.reduce(
-    (sum, t) => sum + t.amount,
-    0
-  );
 
   // Export to PDF
   const exportPDF = () => {
@@ -264,10 +272,10 @@ useEffect(() => {
               <div className="bg-gray-900 p-6 rounded-2xl shadow-lg flex items-center justify-between border border-gray-700">
                 <div>
                   <h3 className="text-sm font-medium text-gray-400">
-                    Total Amount
+                    Total Received Amount
                   </h3>
                   <p className="text-3xl md:text-4xl font-bold text-indigo-400 mt-1">
-                    ${totalAmount.toFixed(2)}
+                    ${totalReceivedAmount.toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-indigo-500/20 p-3 rounded-full">

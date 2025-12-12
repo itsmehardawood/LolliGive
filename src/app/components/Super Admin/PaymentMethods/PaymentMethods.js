@@ -191,7 +191,7 @@ const PaymentMethods = () => {
                   {method.iban && (
                     <div className="flex items-center gap-3 text-sm">
                       <CreditCard className="w-4 h-4 text-gray-500" />
-                      <span className="text-gray-400">IBAN:</span>
+                      <span className="text-gray-400">Routing No:</span>
                       <span className="text-white font-medium">{method.iban}</span>
                     </div>
                   )}

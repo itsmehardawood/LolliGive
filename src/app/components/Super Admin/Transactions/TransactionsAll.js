@@ -258,7 +258,7 @@ export default function TransactionFilter() {
                   </div>
                 </div>
                 <div className="bg-gray-800 rounded-lg p-4">
-                  <div className="text-xs text-gray-400 mb-1">Total Fees (3%)</div>
+                  <div className="text-xs text-gray-400 mb-1">Total Bank Fees</div>
                   <div className="text-xl font-bold text-red-400">
                     {formatCurrency(getOrgStats(selectedOrg.transactions).totalFees)}
                   </div>
@@ -336,7 +336,7 @@ export default function TransactionFilter() {
                               Received: {formatCurrency(parseFloat(txn.amount) * 0.97)}
                             </div>
                             <div className="text-sm text-red-400 mb-2">
-                              Fee (3%): {formatCurrency(parseFloat(txn.amount) * 0.03)}
+                              Bank Fee: {formatCurrency(parseFloat(txn.amount) * 0.03)}
                             </div>
                           </>
                         )}

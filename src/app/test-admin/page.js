@@ -7,6 +7,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [Email, setEmail] = useState("")
+  const [CountryCode, setCountryCode] = useState("+92")
   const router = useRouter()
   const handleLogin = async () => {
     setLoading(true);
@@ -18,7 +19,7 @@ export default function AdminLoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          country_code: '+92',
+          country_code: CountryCode,
           login_input: Email
         }),
       });
@@ -56,9 +57,9 @@ export default function AdminLoginPage() {
               Country Code
             </label>
             <input
+             onChange={(e) => setCountryCode(e.target.value)}
               type="text"
-              value="+92"
-              readOnly
+              value={CountryCode}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
             />
           </div>

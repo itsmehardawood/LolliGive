@@ -28,6 +28,7 @@ export default function BankInfoForm() {
   const [withdrawalLoading, setWithdrawalLoading] = useState(false);
   const [withdrawalTransactions, setWithdrawalTransactions] = useState([]);
   const [fetchingTransactions, setFetchingTransactions] = useState(false);
+  const [availableAmount, setAvailableAmount] = useState(0);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [userPhoneNumber, setUserPhoneNumber] = useState("");
@@ -296,18 +297,30 @@ export default function BankInfoForm() {
         body: JSON.stringify(payload),
       });
 
+      const result = await response.json();
+
+      // Handle API error responses
+      if (!result.success) {
+        // Check if it's an insufficient funds error
+        if (result.available_amount !== undefined) {
+          setAvailableAmount(result.available_amount);
+          setError(
+            `${result.message || 'Withdrawal failed'}. Available amount: $${parseFloat(result.available_amount).toFixed(2)}`
+          );
+        } else {
+          setError(result.message || "Failed to submit withdrawal request");
+        }
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Failed to submit withdrawal request");
       }
 
-      const result = await response.json();
-      
-      if (result.success) {
-        setWithdrawalAmount("");
-        // Refresh withdrawal transactions list
-        await fetchWithdrawalTransactions();
-        showToast("Withdrawal request submitted successfully!", "success");
-      }
+      setWithdrawalAmount("");
+      // Refresh withdrawal transactions list
+      await fetchWithdrawalTransactions();
+      showToast("Withdrawal request submitted successfully!", "success");
     } catch (err) {
       console.error("Error submitting withdrawal:", err);
       setError("Failed to submit withdrawal request. Please try again.");
@@ -722,6 +735,11 @@ export default function BankInfoForm() {
                       className="w-full pl-8 pr-4 py-3 rounded bg-gray-900 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors text-lg"
                     />
                   </div>
+                  {availableAmount > 0 && (
+                    <p className="text-xs text-gray-400 mt-2">
+                      Available to withdraw: <span className="text-indigo-400 font-medium">${availableAmount.toFixed(2)}</span>
+                    </p>
+                  )}
                 </div>
                 
                 <button
