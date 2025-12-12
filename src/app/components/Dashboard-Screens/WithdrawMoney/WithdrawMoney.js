@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useFirebaseOTP } from "../../../lib/useFirebaseOTP";
 import OTPModal from "../../General/OTPModal";
+import { auth } from "../../../lib/firebase";
+import { RecaptchaVerifier } from "firebase/auth";
 
 export default function BankInfoForm() {
   const [paymentMethod, setPaymentMethod] = useState("bank"); // "bank" or "zelle"
@@ -45,56 +47,71 @@ export default function BankInfoForm() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Clear previous verifier if exists
-    if (window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier.clear();
-      } catch (e) {
-        console.warn("Failed to clear previous reCAPTCHA", e);
+    // Wait for DOM to be ready and recaptcha container to exist
+    const initRecaptcha = () => {
+      const container = document.getElementById("recaptcha-container");
+      if (!container) {
+        console.log("reCAPTCHA container not found, retrying...");
+        setTimeout(initRecaptcha, 100);
+        return;
       }
-      window.recaptchaVerifier = null;
-    }
 
-    try {
-      const { auth } = require("../../../lib/firebase");
-      const { RecaptchaVerifier } = require("firebase/auth");
-      
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: (response) => {
-            console.log("reCAPTCHA solved");
-          },
-          "expired-callback": () => {
-            console.log("reCAPTCHA expired");
-            if (window.recaptchaVerifier) {
-              window.recaptchaVerifier.clear();
-              window.recaptchaVerifier = null;
-            }
-          },
-          "error-callback": (error) => {
-            console.error("reCAPTCHA error:", error);
-          },
+      // Clear previous verifier if exists
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {
+          console.warn("Failed to clear previous reCAPTCHA", e);
         }
-      );
+        window.recaptchaVerifier = null;
+      }
 
-      window.recaptchaVerifier
-        .render()
-        .then((widgetId) => {
-          window.recaptchaWidgetId = widgetId;
-          console.log("reCAPTCHA initialized successfully");
-        })
-        .catch((error) => {
-          console.error("reCAPTCHA render error:", error);
-        });
-    } catch (error) {
-      console.error("reCAPTCHA initialization error:", error);
-    }
+      try {
+        window.recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          "recaptcha-container",
+          {
+            size: "invisible",
+            callback: (response) => {
+              console.log("reCAPTCHA solved");
+            },
+            "expired-callback": () => {
+              console.log("reCAPTCHA expired");
+              if (window.recaptchaVerifier) {
+                try {
+                  window.recaptchaVerifier.clear();
+                } catch (e) {
+                  console.warn("Failed to clear expired reCAPTCHA", e);
+                }
+                window.recaptchaVerifier = null;
+              }
+            },
+            "error-callback": (error) => {
+              console.error("reCAPTCHA error:", error);
+            },
+          }
+        );
+
+        window.recaptchaVerifier
+          .render()
+          .then((widgetId) => {
+            window.recaptchaWidgetId = widgetId;
+            console.log("reCAPTCHA initialized successfully for WithdrawMoney");
+          })
+          .catch((error) => {
+            console.error("reCAPTCHA render error:", error);
+          });
+      } catch (error) {
+        console.error("reCAPTCHA initialization error:", error);
+      }
+    };
+
+    // Start initialization after a short delay to ensure DOM is ready
+    const timer = setTimeout(initRecaptcha, 100);
 
     // Cleanup on unmount
     return () => {
+      clearTimeout(timer);
       if (window.recaptchaVerifier) {
         try {
           window.recaptchaVerifier.clear();
@@ -149,7 +166,7 @@ export default function BankInfoForm() {
       setLoading(true);
       // Get org_id from localStorage
       const storedOrgId = localStorage.getItem("org_key_id");
-console.log("Fetched org_key_id from localStorage:", storedOrgId);
+// console.log("Fetched org_key_id from localStorage:", storedOrgId);
       
       if (!storedOrgId) {
         setLoading(false);
