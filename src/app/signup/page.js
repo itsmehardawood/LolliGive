@@ -314,6 +314,10 @@ useEffect(() => {
         // console.log("org_key_id stored:", orgKeyId);
       }
       
+      // Store phone number with country code for OTP verification
+      const fullPhoneNumber = `${formData.countryCode}${formData.phone}`;
+      localStorage.setItem("userPhoneNumber", fullPhoneNumber);
+      
       setApiUserData(userDataWithExpiry);
 
       // console.log("Account created and verified successfully:", userDataWithExpiry);

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useFirebaseOTP } from "../../../lib/useFirebaseOTP";
+import OTPModal from "../../General/OTPModal";
 
 export default function BankInfoForm() {
   const [paymentMethod, setPaymentMethod] = useState("bank"); // "bank" or "zelle"
@@ -25,6 +27,11 @@ export default function BankInfoForm() {
   const [withdrawalTransactions, setWithdrawalTransactions] = useState([]);
   const [fetchingTransactions, setFetchingTransactions] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [userPhoneNumber, setUserPhoneNumber] = useState("");
+  
+  // Firebase OTP hook
+  const { sendOTP, verifyOTP, resetOTP, loading: otpLoading, error: otpError, success: otpSuccess, isOTPSent } = useFirebaseOTP();
 
   // Toast notification helper
   const showToast = (message, type = "success") => {
@@ -34,9 +41,13 @@ export default function BankInfoForm() {
     }, 3000);
   };
 
-  // Fetch existing bank details on component mount
+  // Fetch existing bank details and phone number on component mount
   useEffect(() => {
     fetchBankDetails();
+    const storedPhone = localStorage.getItem("userPhoneNumber");
+    if (storedPhone) {
+      setUserPhoneNumber(storedPhone);
+    }
   }, []);
 
   // Fetch withdrawal transactions when payment details are submitted
@@ -223,8 +234,44 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
     }
   };
 
-  const handleEdit = () => {
-    setSubmitted(false);
+  const handleEdit = async () => {
+    // Check if phone number exists
+    if (!userPhoneNumber) {
+      setError("Phone number not found. Please log in again.");
+      return;
+    }
+
+    // Send OTP to user's phone
+    setShowOTPModal(true);
+    const success = await sendOTP(userPhoneNumber);
+    
+    if (!success) {
+      setShowOTPModal(false);
+      setError("Failed to send verification code. Please try again.");
+    }
+  };
+
+  const handleOTPVerify = async (otpCode) => {
+    const user = await verifyOTP(otpCode);
+    
+    if (user) {
+      // OTP verified successfully - allow editing
+      setShowOTPModal(false);
+      setSubmitted(false);
+      resetOTP();
+      showToast("Verified successfully! You can now edit your details.", "success");
+    }
+  };
+
+  const handleOTPResend = async () => {
+    if (userPhoneNumber) {
+      await sendOTP(userPhoneNumber);
+    }
+  };
+
+  const handleCloseOTPModal = () => {
+    setShowOTPModal(false);
+    resetOTP();
   };
 
   if (loading) {
@@ -674,6 +721,21 @@ console.log("Fetched org_key_id from localStorage:", storedOrgId);
           </>
         )}
       </div>
+
+      {/* OTP Verification Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        onClose={handleCloseOTPModal}
+        onVerify={handleOTPVerify}
+        phoneNumber={userPhoneNumber}
+        loading={otpLoading}
+        error={otpError}
+        success={otpSuccess}
+        onResend={handleOTPResend}
+      />
+
+      {/* Firebase reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
     </section>
   );
 }

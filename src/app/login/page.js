@@ -192,8 +192,11 @@ const handleSignIn = async (e) => {
         throw new Error("No phone number received from backend for OTP verification.");
       }
 
-      setBackendPhoneNumber(phoneFromBackend);
+      // Store phone number with country code for OTP verification
       const fullPhoneNumber = `${formData.countryCode}${phoneFromBackend}`;
+      localStorage.setItem("userPhoneNumber", fullPhoneNumber);
+      
+      setBackendPhoneNumber(phoneFromBackend);
 
       const phoneRegex = /^\+[1-9]\d{1,14}$/;
       if (!phoneRegex.test(fullPhoneNumber)) {
