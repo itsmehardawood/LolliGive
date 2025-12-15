@@ -1,9 +1,77 @@
 "use client";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+
+// Success/Failure Popup Component
+function StatusPopup({ status, message, onClose }) {
+  useEffect(() => {
+    if (status) {
+      const timer = setTimeout(onClose, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, onClose]);
+
+  if (!status) return null;
+
+  const isSuccess = status === 'success';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+
+      {/* Popup Content */}
+      <div className={`relative max-w-sm w-full rounded-xl shadow-2xl p-6 sm:p-8 border-2 transform transition-all duration-300 ${
+        isSuccess
+          ? 'bg-green-600 border-green-400'
+          : 'bg-red-600 border-red-400'
+      }`}>
+        <div className="flex flex-col items-center text-center">
+          {/* Icon */}
+          <div className={`mb-4 p-3 rounded-full ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`}>
+            {isSuccess ? (
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+          </div>
+
+          {/* Title */}
+          <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
+            {isSuccess ? 'Success!' : 'Error'}
+          </h3>
+
+          {/* Message */}
+          <p className="text-sm sm:text-base text-white/90 mb-6">
+            {message}
+          </p>
+
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className={`w-full py-2 px-4 rounded-lg font-semibold transition ${
+              isSuccess
+                ? 'bg-green-500 hover:bg-green-700 text-white'
+                : 'bg-red-500 hover:bg-red-700 text-white'
+            }`}
+          >
+            {isSuccess ? 'Continue' : 'Try Again'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function CheckoutForm({ formData, onSuccess, onError }) {
   const stripe = useStripe();
@@ -384,6 +452,28 @@ const handleCancelStripePayment = () => {
 
   return (
     <>
+    {/* Status Popup */}
+    <StatusPopup 
+      status={submitStatus} 
+      message={submitMessage}
+      onClose={() => {
+        if (submitStatus === 'success') {
+          setStep(1);
+          setFormData({
+            amount: '',
+            customAmount: '',
+            name: '',
+            purpose_reason: '',
+            comment: '',
+            paymentMethod: 'debit_card'
+          });
+        }
+        setSubmitStatus(null);
+        setSubmitMessage('');
+        setClientSecret(null);
+      }}
+    />
+
     {/* Stripe Payment Form Modal */}
     {showStripeForm && clientSecret && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 bg-opacity-80 p-4">
@@ -597,28 +687,6 @@ const handleCancelStripePayment = () => {
             <p className="text-red-500 text-sm mt-1">{errors.paymentMethod}</p>
           )}
         </div>
-
-        {/* Status Messages */}
-        {submitStatus && (
-          <div
-            className={`mb-6 p-6 rounded-lg border-2 ${
-              submitStatus === 'success'
-                ? 'bg-green-600 text-white border-green-400 shadow-lg shadow-green-500/50'
-                : 'bg-red-600 text-white border-red-400'
-            }`}
-          >
-            {submitStatus === 'success' ? (
-              <div className="flex items-center justify-center">
-                <svg className="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-lg font-semibold">{submitMessage}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-center">{submitMessage}</p>
-            )}
-          </div>
-        )}
 
         {/* General Error Messages */}
         {errors.general && (
