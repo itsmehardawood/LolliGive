@@ -308,16 +308,7 @@ export default function TransactionFilter() {
                               <span className="text-gray-300">{txn.paymentmethod.replace(/_/g, ' ')}</span>
                             </p>
                           )}
-                          {txn.status && (
-                            <p className="text-sm text-gray-400">
-                              <span className="text-gray-500">Status:</span>{' '}
-                              <span className={`font-medium ${
-                                txn.status === 'APPROVED' ? 'text-green-400' : 'text-red-400'
-                              }`}>
-                                {txn.status}
-                              </span>
-                            </p>
-                          )}
+                        
                           <div className="flex items-center gap-2 text-xs text-gray-500">
                             <Calendar className="w-3 h-3" />
                             {formatDate(txn.created_at)}

@@ -201,11 +201,11 @@ export default function OrganizationRegistration() {
   const handleEditOrganization = () => {
     // If we have existing data, populate the form with it
     if (existingData) {
-      // Set the isHeroVideo state based on existing data
-      setIsHeroVideo(existingData.isVideo || false);
+      // Set the isHeroVideo state based on existing data (convert 0/1 to boolean)
+      setIsHeroVideo(existingData.isVideo === 1 || existingData.isVideo === '1');
       // Store original hero media for preserving when toggling
       setOriginalHeroMedia(existingData.mainImage || null);
-      setOriginalIsVideo(existingData.isVideo || false);
+      setOriginalIsVideo(existingData.isVideo === 1 || existingData.isVideo === '1');
       
       setFormData({
         name: existingData.name || '',
@@ -495,8 +495,8 @@ export default function OrganizationRegistration() {
       submitData.append('aboutUsText', cleanedData.aboutUsText);
       submitData.append('donationMessage', cleanedData.donationMessage);
       
-      // Add isVideo flag
-      submitData.append('isVideo', isHeroVideo);
+      // Add isVideo flag (convert boolean to 0/1 for backend)
+      submitData.append('isVideo', isHeroVideo ? 1 : 0);
       
       // Add file uploads - only if they are File objects (new uploads), not URL strings (existing data)
       if (cleanedData.logo && typeof cleanedData.logo !== 'string') {
